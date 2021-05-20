@@ -1,0 +1,18 @@
+swiftmailer:
+    default_mailer: mailer_7469
+    mailers:
+        mailer_7469:
+            transport: gmail
+            username: raviprajapati2505@gmail.com
+            password: 250519911991
+            # sender_address: ~
+            # delivery_addresses: ~
+            disable_delivery: false
+        Ravi citrusbug:
+            transport: gmail
+            username: ravi.citrusbug@gmail.com
+            password: R0^!20*vB
+            # sender_address: ~
+            # delivery_addresses: ~
+            disable_delivery: true
+
