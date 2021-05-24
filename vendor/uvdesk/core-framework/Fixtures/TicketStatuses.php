@@ -8,7 +8,7 @@ use Doctrine\Bundle\FixturesBundle\Fixture as DoctrineFixture;
 
 class TicketStatuses extends DoctrineFixture
 {
-    /*private static $seeds = [
+    private static $seeds = [
         [
             'code' => 'open',
             'description' => 'Open',
@@ -45,39 +45,6 @@ class TicketStatuses extends DoctrineFixture
             'colorCode' => '#00A1F2',
             'sortOrder' => 6
         ],
-    ];*/
-
-    private static $seeds = [
-        [
-            'code' => 'open',
-            'description' => 'Open',
-            'colorCode' => '#7E91F0',
-            'sortOrder' => 1
-        ],
-        [
-            'code' => 'inprogress',
-            'description' => 'In Progress',
-            'colorCode' => '#FF6A6B',
-            'sortOrder' => 2
-        ],
-        [
-            'code' => 'waitingoncustomer',
-            'description' => 'Waiting on Customer',
-            'colorCode' => '#FFDE00',
-            'sortOrder' => 3
-        ],
-        [
-            'code' => 'resolved',
-            'description' => 'Resolved',
-            'colorCode' => '#2CD651',
-            'sortOrder' => 4
-        ],
-        [
-            'code' => 'closed',
-            'description' => 'Closed',
-            'colorCode' => '#767676',
-            'sortOrder' => 5
-        ],
     ];
 
     public function load(ObjectManager $entityManager)
@@ -86,7 +53,7 @@ class TicketStatuses extends DoctrineFixture
         $availableTicketStatuses = array_map(function ($ticketStatus) {
             return $ticketStatus->getCode();
         }, $availableTicketStatuses);
-
+        
         foreach (self::$seeds as $ticketStatusSeed) {
             if (false === in_array($ticketStatusSeed['code'], $availableTicketStatuses)) {
                 $ticketStatus = new CoreEntities\TicketStatus();
@@ -94,7 +61,7 @@ class TicketStatuses extends DoctrineFixture
                 $ticketStatus->setDescription($ticketStatusSeed['description']);
                 $ticketStatus->setColorCode($ticketStatusSeed['colorCode']);
                 $ticketStatus->setSortOrder($ticketStatusSeed['sortOrder']);
-
+    
                 $entityManager->persist($ticketStatus);
             }
         }

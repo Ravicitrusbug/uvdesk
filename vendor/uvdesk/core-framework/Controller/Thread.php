@@ -17,8 +17,6 @@ use Symfony\Component\Translation\TranslatorInterface;
 use Webkul\UVDesk\CoreFrameworkBundle\Services\UVDeskService;
 use Webkul\UVDesk\CoreFrameworkBundle\Services\TicketService;
 use Webkul\UVDesk\CoreFrameworkBundle\Services\EmailService;
-use Symfony\Component\HttpKernel\KernelInterface;
-
 
 class Thread extends Controller
 {
@@ -27,16 +25,14 @@ class Thread extends Controller
     private $eventDispatcher;
     private $ticketService;
     private $emailService;
-    private $kernel;
 
-    public function __construct(UserService $userService, TranslatorInterface $translator, TicketService $ticketService, EmailService $emailService, EventDispatcherInterface $eventDispatcher, KernelInterface $kernel)
+    public function __construct(UserService $userService, TranslatorInterface $translator, TicketService $ticketService, EmailService $emailService, EventDispatcherInterface $eventDispatcher)
     {
         $this->userService = $userService;
         $this->emailService = $emailService;
         $this->translator = $translator;
         $this->ticketService = $ticketService;
         $this->eventDispatcher = $eventDispatcher;
-        $this->kernel = $kernel;
     }
 
     public function saveThread($ticketId, Request $request)
@@ -85,7 +81,7 @@ class Thread extends Controller
             'attachments' => $request->files->get('attachments')
         ];
 
-        if (!empty($params['status'])) {
+        if(!empty($params['status'])){
             $ticketStatus = $entityManager->getRepository(TicketStatus::class)->findOneByCode($params['status']);
             $ticket->setStatus($ticketStatus);
         }
@@ -149,17 +145,17 @@ class Thread extends Controller
                 $attachments = $entityManager->getRepository(Attachment::class)->findByThread($thread);
 
                 $projectDir = $this->kernel->getProjectDir();
-                $attachments = array_map(function ($attachment) use ($projectDir) {
-                    return str_replace('//', '/', $projectDir . "/public" . $attachment->getPath());
+                $attachments = array_map(function($attachment) use ($projectDir) {
+                return str_replace('//', '/', $projectDir . "/public" . $attachment->getPath());
                 }, $attachments);
 
                 // Forward thread to users
                 try {
                     $messageId = $this->emailService->sendMail($params['subject'] ?? ("Forward: " . $ticket->getSubject()), $thread->getMessage(), $thread->getReplyTo(), $headers, $ticket->getMailboxEmail(), $attachments ?? [], $thread->getCc() ?: [], $thread->getBcc() ?: []);
-
+    
                     if (!empty($messageId)) {
                         $thread->setMessageId($messageId);
-
+    
                         $entityManager->persist($createdThread);
                         $entityManager->flush();
                     }
@@ -195,7 +191,7 @@ class Thread extends Controller
         if ('redirect' === $params['nextView']) {
             return $this->redirect($this->generateUrl('helpdesk_member_ticket_collection'));
         }
-
+        
         return $this->redirect($this->generateUrl('helpdesk_member_ticket', ['ticketId' => $ticket->getId()]));
     }
 
@@ -207,7 +203,7 @@ class Thread extends Controller
 
         if ($request->getMethod() == "PUT") {
             // $this->isAuthorized('ROLE_AGENT_EDIT_THREAD_NOTE');
-            if (str_replace(' ', '', str_replace('&nbsp;', '', trim(strip_tags($content['reply'], '<img>')))) != "") {
+            if (str_replace(' ','',str_replace('&nbsp;','',trim(strip_tags($content['reply'], '<img>')))) != "") {
                 $thread = $em->getRepository(TicketThread::class)->find($request->attributes->get('threadId'));
                 $thread->setMessage($content['reply']);
                 $em->persist($thread);

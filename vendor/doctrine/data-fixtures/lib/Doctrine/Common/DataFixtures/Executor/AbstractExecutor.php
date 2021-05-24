@@ -9,9 +9,11 @@ use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Common\DataFixtures\Purger\PurgerInterface;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\Common\DataFixtures\SharedFixtureInterface;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 use Exception;
+
 use function get_class;
+use function interface_exists;
 use function sprintf;
 
 /**
@@ -105,12 +107,15 @@ abstract class AbstractExecutor
             if ($fixture instanceof OrderedFixtureInterface) {
                 $prefix = sprintf('[%d] ', $fixture->getOrder());
             }
+
             $this->log('loading ' . $prefix . get_class($fixture));
         }
+
         // additionally pass the instance of reference repository to shared fixtures
         if ($fixture instanceof SharedFixtureInterface) {
             $fixture->setReferenceRepository($this->referenceRepository);
         }
+
         $fixture->load($manager);
         $manager->clear();
     }
@@ -125,9 +130,11 @@ abstract class AbstractExecutor
         if ($this->purger === null) {
             throw new Exception('Doctrine\Common\DataFixtures\Purger\PurgerInterface instance is required if you want to purge the database before loading your data fixtures.');
         }
+
         if ($this->logger) {
             $this->log('purging database');
         }
+
         $this->purger->purge();
     }
 
@@ -139,3 +146,5 @@ abstract class AbstractExecutor
      */
     abstract public function execute(array $fixtures, $append = false);
 }
+
+interface_exists(ObjectManager::class);

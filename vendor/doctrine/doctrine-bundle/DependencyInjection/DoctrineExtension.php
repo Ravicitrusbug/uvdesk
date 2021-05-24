@@ -7,13 +7,15 @@ use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\ServiceRepositor
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepositoryInterface;
 use Doctrine\Bundle\DoctrineCacheBundle\DependencyInjection\CacheProviderLoader;
 use Doctrine\Bundle\DoctrineCacheBundle\DependencyInjection\SymfonyBridgeAdapter;
-use Doctrine\Common\Persistence\Mapping\ClassMetadataFactory;
-use Doctrine\ORM\Version;
+use Doctrine\ORM\UnitOfWork;
+use Doctrine\Persistence\Mapping\ClassMetadataFactory;
 use LogicException;
 use Symfony\Bridge\Doctrine\DependencyInjection\AbstractDoctrineExtension;
+use Symfony\Bridge\Doctrine\Messenger\DoctrineClearEntityManagerWorkerSubscriber;
 use Symfony\Bridge\Doctrine\Messenger\DoctrineTransactionMiddleware;
 use Symfony\Bridge\Doctrine\PropertyInfo\DoctrineExtractor;
 use Symfony\Bridge\Doctrine\Validator\DoctrineLoader;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\DoctrineProvider;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Alias;
@@ -60,6 +62,8 @@ class DoctrineExtension extends AbstractDoctrineExtension
 
         if (! empty($config['dbal'])) {
             $this->dbalLoad($config['dbal'], $container);
+
+            $this->loadMessengerServices($container);
         }
 
         if (empty($config['orm'])) {
@@ -68,10 +72,6 @@ class DoctrineExtension extends AbstractDoctrineExtension
 
         if (empty($config['dbal'])) {
             throw new LogicException('Configuring the ORM layer requires to configure the DBAL layer as well.');
-        }
-
-        if (! class_exists(Version::class)) {
-            throw new LogicException('To configure the ORM layer, you must first install the doctrine/orm package.');
         }
 
         $this->ormLoad($config['orm'], $container);
@@ -91,6 +91,12 @@ class DoctrineExtension extends AbstractDoctrineExtension
     {
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('dbal.xml');
+
+        if (method_exists(Alias::class, 'setDeprecated')) {
+            $container->getAlias('Symfony\Bridge\Doctrine\RegistryInterface')->setDeprecated(true, 'The "%alias_id%" service alias is deprecated, use "Doctrine\Persistence\ManagerRegistry" instead.');
+            $container->getAlias('Doctrine\Bundle\DoctrineBundle\Registry')->setDeprecated(true, 'The "%alias_id%" service alias is deprecated, use "Doctrine\Persistence\ManagerRegistry" instead.');
+            $container->getAlias('Doctrine\Common\Persistence\ManagerRegistry')->setDeprecated(true, 'The "%alias_id%" service alias is deprecated, use "Doctrine\Persistence\ManagerRegistry" instead.');
+        }
 
         if (empty($config['default_connection'])) {
             $keys                         = array_keys($config['connections']);
@@ -341,8 +347,16 @@ class DoctrineExtension extends AbstractDoctrineExtension
      */
     protected function ormLoad(array $config, ContainerBuilder $container)
     {
+        if (! class_exists(UnitOfWork::class)) {
+            throw new LogicException('To configure the ORM layer, you must first install the doctrine/orm package.');
+        }
+
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('orm.xml');
+
+        if (method_exists(Alias::class, 'setDeprecated')) {
+            $container->getAlias('Doctrine\Common\Persistence\ObjectManager')->setDeprecated(true, 'The "%alias_id%" service alias is deprecated, use "Doctrine\ORM\EntityManagerInterface" instead.');
+        }
 
         if (class_exists(AbstractType::class)) {
             $container->getDefinition('form.type.entity')->addTag('kernel.reset', ['method' => 'reset']);
@@ -399,8 +413,6 @@ class DoctrineExtension extends AbstractDoctrineExtension
 
         $container->registerForAutoconfiguration(ServiceEntityRepositoryInterface::class)
             ->addTag(ServiceRepositoryCompilerPass::REPOSITORY_SERVICE_TAG);
-
-        $this->loadMessengerServices($container);
     }
 
     /**
@@ -566,7 +578,7 @@ class DoctrineExtension extends AbstractDoctrineExtension
      *             alias: BundleAlias
      *         arbitrary_key:
      *             type: xml
-     *             dir: %kernel.root_dir%/../src/vendor/DoctrineExtensions/lib/DoctrineExtensions/Entities
+     *             dir: %kernel.project_dir%/src/vendor/DoctrineExtensions/lib/DoctrineExtensions/Entities
      *             prefix: DoctrineExtensions\Entities\
      *             alias: DExt
      *
@@ -596,6 +608,8 @@ class DoctrineExtension extends AbstractDoctrineExtension
      *  entity_managers:
      *      default:
      *          second_level_cache:
+     *              region_lifetime: 3600
+     *              region_lock_lifetime: 60
      *              region_cache_driver: apc
      *              log_enabled: true
      *              regions:
@@ -628,7 +642,9 @@ class DoctrineExtension extends AbstractDoctrineExtension
         $regionsId  = sprintf('doctrine.orm.%s_second_level_cache.regions_configuration', $entityManager['name']);
         $driverId   = $driverId ?: sprintf('doctrine.orm.%s_second_level_cache.region_cache_driver', $entityManager['name']);
         $configDef  = $container->setDefinition($configId, new Definition('%doctrine.orm.second_level_cache.cache_configuration.class%'));
-        $regionsDef = $container->setDefinition($regionsId, new Definition('%doctrine.orm.second_level_cache.regions_configuration.class%'));
+        $regionsDef = $container
+            ->setDefinition($regionsId, new Definition('%doctrine.orm.second_level_cache.regions_configuration.class%'))
+            ->setArguments([$entityManager['second_level_cache']['region_lifetime'], $entityManager['second_level_cache']['region_lock_lifetime']]);
 
         $slcFactoryId = sprintf('doctrine.orm.%s_second_level_cache.default_cache_factory', $entityManager['name']);
         $factoryClass = isset($entityManager['second_level_cache']['factory']) ? $entityManager['second_level_cache']['factory'] : '%doctrine.orm.second_level_cache.default_cache_factory.class%';
@@ -705,12 +721,12 @@ class DoctrineExtension extends AbstractDoctrineExtension
     /**
      * {@inheritDoc}
      */
-    protected function getObjectManagerElementName($name)
+    protected function getObjectManagerElementName($name) : string
     {
         return 'doctrine.orm.' . $name;
     }
 
-    protected function getMappingObjectDefaultName()
+    protected function getMappingObjectDefaultName() : string
     {
         return 'Entity';
     }
@@ -718,7 +734,7 @@ class DoctrineExtension extends AbstractDoctrineExtension
     /**
      * {@inheritDoc}
      */
-    protected function getMappingResourceConfigDirectory()
+    protected function getMappingResourceConfigDirectory() : string
     {
         return 'Resources/config/doctrine';
     }
@@ -726,7 +742,7 @@ class DoctrineExtension extends AbstractDoctrineExtension
     /**
      * {@inheritDoc}
      */
-    protected function getMappingResourceExtension()
+    protected function getMappingResourceExtension() : string
     {
         return 'orm';
     }
@@ -734,22 +750,29 @@ class DoctrineExtension extends AbstractDoctrineExtension
     /**
      * {@inheritDoc}
      */
-    protected function loadCacheDriver($driverName, $entityManagerName, array $driverMap, ContainerBuilder $container)
+    protected function loadCacheDriver($cacheName, $objectManagerName, array $cacheDriver, ContainerBuilder $container) : string
     {
         $serviceId = null;
-        $aliasId   = $this->getObjectManagerElementName(sprintf('%s_%s', $entityManagerName, $driverName));
+        $aliasId   = $this->getObjectManagerElementName(sprintf('%s_%s', $objectManagerName, $cacheName));
 
-        switch ($driverMap['type']) {
+        if ($cacheDriver['type'] === null) {
+            $cacheDriver = [
+                'type' => 'pool',
+                'pool' => $this->createArrayAdapterCachePool($container, $objectManagerName, $cacheName),
+            ];
+        }
+
+        switch ($cacheDriver['type']) {
             case 'service':
-                $serviceId = $driverMap['id'];
+                $serviceId = $cacheDriver['id'];
                 break;
 
             case 'pool':
-                $serviceId = $this->createPoolCacheDefinition($container, $driverMap['pool']);
+                $serviceId = $this->createPoolCacheDefinition($container, $cacheDriver['pool']);
                 break;
 
             case 'provider':
-                $serviceId = sprintf('doctrine_cache.providers.%s', $driverMap['cache_provider']);
+                $serviceId = sprintf('doctrine_cache.providers.%s', $cacheDriver['cache_provider']);
                 break;
         }
 
@@ -759,7 +782,7 @@ class DoctrineExtension extends AbstractDoctrineExtension
             return $aliasId;
         }
 
-        return $this->adapter->loadCacheDriver($driverName, $entityManagerName, $driverMap, $container);
+        return $this->adapter->loadCacheDriver($cacheName, $objectManagerName, $cacheDriver, $container);
     }
 
     /**
@@ -835,7 +858,7 @@ class DoctrineExtension extends AbstractDoctrineExtension
     /**
      * {@inheritDoc}
      */
-    public function getXsdValidationBasePath()
+    public function getXsdValidationBasePath() : string
     {
         return __DIR__ . '/../Resources/config/schema';
     }
@@ -843,7 +866,7 @@ class DoctrineExtension extends AbstractDoctrineExtension
     /**
      * {@inheritDoc}
      */
-    public function getNamespace()
+    public function getNamespace() : string
     {
         return 'http://symfony.com/schema/dic/doctrine';
     }
@@ -851,9 +874,14 @@ class DoctrineExtension extends AbstractDoctrineExtension
     /**
      * {@inheritDoc}
      */
-    public function getConfiguration(array $config, ContainerBuilder $container)
+    public function getConfiguration(array $config, ContainerBuilder $container) : Configuration
     {
         return new Configuration($container->getParameter('kernel.debug'));
+    }
+
+    protected function getMetadataDriverClass(string $driverType) : string
+    {
+        return '%' . $this->getObjectManagerElementName('metadata.' . $driverType . '.class%');
     }
 
     private function loadMessengerServices(ContainerBuilder $container) : void
@@ -866,6 +894,10 @@ class DoctrineExtension extends AbstractDoctrineExtension
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('messenger.xml');
 
+        if (! class_exists(DoctrineClearEntityManagerWorkerSubscriber::class)) {
+            $container->removeDefinition('doctrine.orm.messenger.event_subscriber.doctrine_clear_entity_manager');
+        }
+
         if (! class_exists(DoctrineTransportFactory::class)) {
             return;
         }
@@ -876,16 +908,23 @@ class DoctrineExtension extends AbstractDoctrineExtension
 
     private function createPoolCacheDefinition(ContainerBuilder $container, string $poolName) : string
     {
-        if (! class_exists(DoctrineProvider::class)) {
-            throw new LogicException('Using the "pool" cache type is only supported when symfony/cache is installed.');
-        }
-
-        $serviceId = sprintf('doctrine.orm.cache.pool.%s', $poolName);
+        $serviceId = sprintf('doctrine.orm.cache.provider.%s', $poolName);
 
         $definition = $container->register($serviceId, DoctrineProvider::class);
         $definition->addArgument(new Reference($poolName));
         $definition->setPrivate(true);
 
         return $serviceId;
+    }
+
+    private function createArrayAdapterCachePool(ContainerBuilder $container, string $objectManagerName, string $cacheName) : string
+    {
+        $id = sprintf('cache.doctrine.orm.%s.%s', $objectManagerName, str_replace('_cache', '', $cacheName));
+
+        $poolDefinition = $container->register($id, ArrayAdapter::class);
+        $poolDefinition->addTag('cache.pool');
+        $container->setDefinition($id, $poolDefinition);
+
+        return $id;
     }
 }

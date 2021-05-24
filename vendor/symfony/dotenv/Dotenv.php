@@ -35,7 +35,7 @@ final class Dotenv
     private $data;
     private $end;
     private $values;
-    private $usePutenv = true;
+    private $usePutenv;
 
     /**
      * @var bool If `putenv()` should be used to define environment variables or not.
@@ -277,7 +277,10 @@ final class Dotenv
                 $this->cursor += 1 + $len;
             } elseif ('"' === $this->data[$this->cursor]) {
                 $value = '';
-                ++$this->cursor;
+
+                if (++$this->cursor === $this->end) {
+                    throw $this->createFormatException('Missing quote to end the value');
+                }
 
                 while ('"' !== $this->data[$this->cursor] || ('\\' === $this->data[$this->cursor - 1] && '\\' !== $this->data[$this->cursor - 2])) {
                     $value .= $this->data[$this->cursor];
@@ -458,7 +461,7 @@ final class Dotenv
             } elseif (isset($this->values[$name])) {
                 $value = $this->values[$name];
             } else {
-                $value = '';
+                $value = (string) getenv($name);
             }
 
             if (!$matches['opening_brace'] && isset($matches['closing_brace'])) {

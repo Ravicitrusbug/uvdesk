@@ -23,6 +23,7 @@ use Symfony\Component\HttpClient\Response\ResponseStream;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 use Symfony\Contracts\HttpClient\ResponseStreamInterface;
+use Symfony\Contracts\Service\ResetInterface;
 
 /**
  * A performant implementation of the HttpClientInterface contracts based on the curl extension.
@@ -34,7 +35,7 @@ use Symfony\Contracts\HttpClient\ResponseStreamInterface;
  *
  * @experimental in 4.3
  */
-final class CurlHttpClient implements HttpClientInterface, LoggerAwareInterface
+final class CurlHttpClient implements HttpClientInterface, LoggerAwareInterface, ResetInterface
 {
     use HttpClientTrait;
     use LoggerAwareTrait;
@@ -112,25 +113,8 @@ final class CurlHttpClient implements HttpClientInterface, LoggerAwareInterface
         $url = implode('', $url);
 
         if (!isset($options['normalized_headers']['user-agent'])) {
-            $options['normalized_headers']['user-agent'][] = $options['headers'][] = 'User-Agent: Symfony HttpClient/Curl';
+            $options['headers'][] = 'User-Agent: Symfony HttpClient/Curl';
         }
-
-        if ($pushedResponse = $this->multi->pushedResponses[$url] ?? null) {
-            unset($this->multi->pushedResponses[$url]);
-
-            if (self::acceptPushForRequest($method, $options, $pushedResponse)) {
-                $this->logger && $this->logger->debug(sprintf('Accepting pushed response: "%s %s"', $method, $url));
-
-                // Reinitialize the pushed response with request's options
-                $pushedResponse->response->__construct($this->multi, $url, $options, $this->logger);
-
-                return $pushedResponse->response;
-            }
-
-            $this->logger && $this->logger->debug(sprintf('Rejecting pushed response: "%s".', $url));
-        }
-
-        $this->logger && $this->logger->info(sprintf('Request: "%s %s"', $method, $url));
 
         $curlopts = [
             CURLOPT_URL => $url,
@@ -210,8 +194,8 @@ final class CurlHttpClient implements HttpClientInterface, LoggerAwareInterface
             $curlopts[CURLOPT_NOSIGNAL] = true;
         }
 
-        if (!isset($options['normalized_headers']['accept-encoding']) && CURL_VERSION_LIBZ & self::$curlVersion['features']) {
-            $curlopts[CURLOPT_ENCODING] = 'gzip'; // Expose only one encoding, some servers mess up when more are provided
+        if (\extension_loaded('zlib') && !isset($options['normalized_headers']['accept-encoding'])) {
+            $options['headers'][] = 'Accept-Encoding: gzip'; // Expose only one encoding, some servers mess up when more are provided
         }
 
         foreach ($options['headers'] as $header) {
@@ -266,7 +250,26 @@ final class CurlHttpClient implements HttpClientInterface, LoggerAwareInterface
             $curlopts[file_exists($options['bindto']) ? CURLOPT_UNIX_SOCKET_PATH : CURLOPT_INTERFACE] = $options['bindto'];
         }
 
-        $ch = curl_init();
+        if ($pushedResponse = $this->multi->pushedResponses[$url] ?? null) {
+            unset($this->multi->pushedResponses[$url]);
+
+            if (self::acceptPushForRequest($method, $options, $pushedResponse)) {
+                $this->logger && $this->logger->debug(sprintf('Accepting pushed response: "%s %s"', $method, $url));
+
+                // Reinitialize the pushed response with request's options
+                $ch = $pushedResponse->handle;
+                $pushedResponse = $pushedResponse->response;
+                $pushedResponse->__construct($this->multi, $url, $options, $this->logger);
+            } else {
+                $this->logger && $this->logger->debug(sprintf('Rejecting pushed response: "%s".', $url));
+                $pushedResponse = null;
+            }
+        }
+
+        if (!$pushedResponse) {
+            $ch = curl_init();
+            $this->logger && $this->logger->info(sprintf('Request: "%s %s"', $method, $url));
+        }
 
         foreach ($curlopts as $opt => $value) {
             if (null !== $value && !curl_setopt($ch, $opt, $value) && CURLOPT_CERTINFO !== $opt) {
@@ -278,7 +281,7 @@ final class CurlHttpClient implements HttpClientInterface, LoggerAwareInterface
             }
         }
 
-        return new CurlResponse($this->multi, $ch, $options, $this->logger, $method, self::createRedirectResolver($options, $host));
+        return $pushedResponse ?? new CurlResponse($this->multi, $ch, $options, $this->logger, $method, self::createRedirectResolver($options, $host));
     }
 
     /**
@@ -298,9 +301,17 @@ final class CurlHttpClient implements HttpClientInterface, LoggerAwareInterface
         return new ResponseStream(CurlResponse::stream($responses, $timeout));
     }
 
-    public function __destruct()
+    public function reset()
     {
+        if ($this->logger) {
+            foreach ($this->multi->pushedResponses as $url => $response) {
+                $this->logger->debug(sprintf('Unused pushed response: "%s"', $url));
+            }
+        }
+
         $this->multi->pushedResponses = [];
+        $this->multi->dnsCache->evictions = $this->multi->dnsCache->evictions ?: $this->multi->dnsCache->removals;
+        $this->multi->dnsCache->removals = $this->multi->dnsCache->hostnames = [];
 
         if (\is_resource($this->multi->handle)) {
             if (\defined('CURLMOPT_PUSHFUNCTION')) {
@@ -316,6 +327,11 @@ final class CurlHttpClient implements HttpClientInterface, LoggerAwareInterface
                 curl_setopt($ch, CURLOPT_VERBOSE, false);
             }
         }
+    }
+
+    public function __destruct()
+    {
+        $this->reset();
     }
 
     private static function handlePush($parent, $pushed, array $requestHeaders, CurlClientState $multi, int $maxPendingPushes, ?LoggerInterface $logger): int
@@ -337,12 +353,6 @@ final class CurlHttpClient implements HttpClientInterface, LoggerAwareInterface
 
         $url = $headers[':scheme'][0].'://'.$headers[':authority'][0];
 
-        if ($maxPendingPushes <= \count($multi->pushedResponses)) {
-            $logger && $logger->debug(sprintf('Rejecting pushed response from "%s" for "%s": the queue is full', $origin, $url));
-
-            return CURL_PUSH_DENY;
-        }
-
         // curl before 7.65 doesn't validate the pushed ":authority" header,
         // but this is a MUST in the HTTP/2 RFC; let's restrict pushes to the original host,
         // ignoring domains mentioned as alt-name in the certificate for now (same as curl).
@@ -352,10 +362,16 @@ final class CurlHttpClient implements HttpClientInterface, LoggerAwareInterface
             return CURL_PUSH_DENY;
         }
 
+        if ($maxPendingPushes <= \count($multi->pushedResponses)) {
+            $fifoUrl = key($multi->pushedResponses);
+            unset($multi->pushedResponses[$fifoUrl]);
+            $logger && $logger->debug(sprintf('Evicting oldest pushed response: "%s"', $fifoUrl));
+        }
+
         $url .= $headers[':path'][0];
         $logger && $logger->debug(sprintf('Queueing pushed response: "%s"', $url));
 
-        $multi->pushedResponses[$url] = new PushedResponse(new CurlResponse($multi, $pushed), $headers, $multi->openHandles[(int) $parent][1] ?? []);
+        $multi->pushedResponses[$url] = new PushedResponse(new CurlResponse($multi, $pushed), $headers, $multi->openHandles[(int) $parent][1] ?? [], $pushed);
 
         return CURL_PUSH_OK;
     }

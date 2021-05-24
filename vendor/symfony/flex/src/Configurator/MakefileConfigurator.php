@@ -21,7 +21,7 @@ class MakefileConfigurator extends AbstractConfigurator
 {
     public function configure(Recipe $recipe, $definitions, Lock $lock, array $options = [])
     {
-        $this->write('Added Makefile entries');
+        $this->write('Adding Makefile entries');
 
         $makefile = $this->options->get('root-dir').'/Makefile';
         if (empty($options['force']) && $this->isFileMarked($recipe, $makefile)) {
@@ -50,7 +50,7 @@ EOF
         }
 
         if (!$this->updateData($makefile, $data)) {
-            file_put_contents($makefile, $data, FILE_APPEND);
+            file_put_contents($makefile, $data, \FILE_APPEND);
         }
     }
 
@@ -65,7 +65,7 @@ EOF
             return;
         }
 
-        $this->write(sprintf('Removed Makefile entries from %s', $makefile));
+        $this->write(sprintf('Removing Makefile entries from %s', $makefile));
         if (!trim($contents)) {
             @unlink($makefile);
         } else {

@@ -226,13 +226,11 @@
                 '%name%': name,
                 '%id%': id,
             }) %}
-        {%- elseif label is same as(false) -%}
-            {% set translation_domain = false %}
-        {%- else -%}
+        {%- elseif label is not same as(false) -%}
             {% set label = name|humanize %}
         {%- endif -%}
     {%- endif -%}
-    <button type="{{ type|default('button') }}" {{ block('button_attributes') }}>{{ translation_domain is same as(false) ? label : label|trans(label_translation_parameters, translation_domain) }}</button>
+    <button type="{{ type|default('button') }}" {{ block('button_attributes') }}>{{ translation_domain is same as(false) or label is same as(false) ? label : label|trans(label_translation_parameters, translation_domain) }}</button>
 {%- endblock button_widget -%}
 
 {%- block submit_widget -%}
@@ -325,7 +323,7 @@
     {%- if help is not empty -%}
         {%- set widget_attr = {attr: {'aria-describedby': id ~"_help"}} -%}
     {%- endif -%}
-    <div {% with {attr: row_attr|default({})} %}{{ block('attributes') }}{% endwith %}>
+    <div{% with {attr: row_attr} %}{{ block('attributes') }}{% endwith %}>
         {{- form_label(form) -}}
         {{- form_errors(form) -}}
         {{- form_widget(form, widget_attr) -}}
@@ -334,7 +332,7 @@
 {%- endblock form_row -%}
 
 {%- block button_row -%}
-    <div {% with {attr: row_attr|default({})} %}{{ block('attributes') }}{% endwith %}>
+    <div{% with {attr: row_attr} %}{{ block('attributes') }}{% endwith %}>
         {{- form_widget(form) -}}
     </div>
 {%- endblock button_row -%}

@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace Doctrine\Common\DataFixtures;
 
-use Doctrine\Common\Util\ClassUtils;
-use Doctrine\Common\Version;
 use function file_exists;
 use function file_get_contents;
 use function file_put_contents;
 use function get_class;
-use function json_decode;
-use function json_encode;
+use function serialize;
 use function substr;
+use function unserialize;
 
 /**
  * Proxy reference repository
@@ -31,10 +29,6 @@ class ProxyReferenceRepository extends ReferenceRepository
      */
     protected function getRealClass($className)
     {
-        if (Version::compare('2.2.0') <= 0) {
-            return ClassUtils::getRealClass($className);
-        }
-
         if (substr($className, -5) === 'Proxy') {
             return substr($className, 0, -5);
         }
@@ -58,7 +52,7 @@ class ProxyReferenceRepository extends ReferenceRepository
             $simpleReferences[$name] = [$className, $this->getIdentifier($reference, $unitOfWork)];
         }
 
-        return json_encode([
+        return serialize([
             'references' => $simpleReferences,
             'identities' => $this->getIdentities(),
         ]);
@@ -71,7 +65,7 @@ class ProxyReferenceRepository extends ReferenceRepository
      */
     public function unserialize($serializedData)
     {
-        $repositoryData = json_decode($serializedData, true);
+        $repositoryData = unserialize($serializedData);
         $references     = $repositoryData['references'];
 
         foreach ($references as $name => $proxyReference) {

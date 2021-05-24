@@ -33,6 +33,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Security\Core\Encoder\Argon2iPasswordEncoder;
 use Symfony\Component\Security\Core\Encoder\NativePasswordEncoder;
+use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 use Symfony\Component\Yaml\Yaml;
 
@@ -49,11 +50,14 @@ final class MakeUser extends AbstractMaker
 
     private $configUpdater;
 
-    public function __construct(FileManager $fileManager, UserClassBuilder $userClassBuilder, SecurityConfigUpdater $configUpdater)
+    private $entityClassGenerator;
+
+    public function __construct(FileManager $fileManager, UserClassBuilder $userClassBuilder, SecurityConfigUpdater $configUpdater, EntityClassGenerator $entityClassGenerator)
     {
         $this->fileManager = $fileManager;
         $this->userClassBuilder = $userClassBuilder;
         $this->configUpdater = $configUpdater;
+        $this->entityClassGenerator = $entityClassGenerator;
     }
 
     public static function getCommandName(): string
@@ -61,10 +65,14 @@ final class MakeUser extends AbstractMaker
         return 'make:user';
     }
 
+    public static function getCommandDescription(): string
+    {
+        return 'Creates a new security user class';
+    }
+
     public function configureCommand(Command $command, InputConfiguration $inputConf)
     {
         $command
-            ->setDescription('Creates a new security user class')
             ->addArgument('name', InputArgument::OPTIONAL, 'The name of the security user class (e.g. <fg=yellow>User</>)')
             ->addOption('is-entity', null, InputOption::VALUE_NONE, 'Do you want to store user data in the database (via Doctrine)?')
             ->addOption('identity-property-name', null, InputOption::VALUE_REQUIRED, 'Enter a property name that will be the unique "display" name for the user (e.g. <comment>email, username, uuid</comment>)')
@@ -124,7 +132,7 @@ final class MakeUser extends AbstractMaker
             $input->getOption('with-password')
         );
         if ($input->getOption('use-argon2')) {
-            @trigger_error('The "--use-argon2" option is deprecated since MakerBundle 1.12.', E_USER_DEPRECATED);
+            @trigger_error('The "--use-argon2" option is deprecated since MakerBundle 1.12.', \E_USER_DEPRECATED);
             $userClassConfiguration->useArgon2(true);
         }
 
@@ -135,8 +143,7 @@ final class MakeUser extends AbstractMaker
 
         // A) Generate the User class
         if ($userClassConfiguration->isEntity()) {
-            $entityClassGenerator = new EntityClassGenerator($generator);
-            $classPath = $entityClassGenerator->generateEntityClass(
+            $classPath = $this->entityClassGenerator->generateEntityClass(
                 $userClassNameDetails,
                 false, // api resource
                 $userClassConfiguration->hasPassword() && interface_exists(PasswordUpgraderInterface::class) // security user
@@ -153,10 +160,9 @@ final class MakeUser extends AbstractMaker
             true
         );
         $manipulator->setIo($io);
-        $this->userClassBuilder->addUserInterfaceImplementation(
-            $manipulator,
-            $userClassConfiguration
-        );
+
+        $this->userClassBuilder->addUserInterfaceImplementation($manipulator, $userClassConfiguration);
+
         $generator->dumpFile($classPath, $manipulator->getSourceCode());
 
         // C) Generate a custom user provider, if necessary
@@ -166,6 +172,7 @@ final class MakeUser extends AbstractMaker
                 $userClassConfiguration->getUserProviderClass(),
                 'security/UserProvider.tpl.php',
                 [
+                    'uses_user_identifier' => class_exists(UserNotFoundException::class),
                     'user_short_name' => $userClassNameDetails->getShortName(),
                 ]
             );
@@ -226,8 +233,6 @@ final class MakeUser extends AbstractMaker
 
     public function configureDependencies(DependencyBuilder $dependencies, InputInterface $input = null)
     {
-        $dependencies->requirePHP71();
-
         // checking for SecurityBundle guarantees security.yaml is present
         $dependencies->addClassDependency(
             SecurityBundle::class,

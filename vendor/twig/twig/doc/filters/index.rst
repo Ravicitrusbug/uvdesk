@@ -47,6 +47,7 @@ Filters
     reverse
     round
     slice
+    slug
     sort
     spaceless
     split
@@ -54,5 +55,6 @@ Filters
     timezone_name
     title
     trim
+    u
     upper
     url_encode

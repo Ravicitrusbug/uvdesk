@@ -2,10 +2,10 @@
 
 namespace Knp\Component\Pager\Event\Subscriber\Filtration;
 
+use Knp\Component\Pager\Event\ItemsEvent;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Knp\Component\Pager\Event\ItemsEvent;
 
 class PropelQuerySubscriber implements EventSubscriberInterface
 {
@@ -38,8 +38,12 @@ class PropelQuerySubscriber implements EventSubscriberInterface
             }
             $columns = (array) $columns;
             if (isset($event->options[PaginatorInterface::FILTER_FIELD_WHITELIST])) {
+                trigger_deprecation('knplabs/knp-components', '2.4.0', \sprintf('%s option is deprecated. Use %s option instead.', PaginatorInterface::FILTER_FIELD_WHITELIST, PaginatorInterface::FILTER_FIELD_ALLOW_LIST));
+                $event->options[PaginatorInterface::FILTER_FIELD_ALLOW_LIST] = $event->options[PaginatorInterface::FILTER_FIELD_WHITELIST];
+            }
+            if (isset($event->options[PaginatorInterface::FILTER_FIELD_ALLOW_LIST])) {
                 foreach ($columns as $column) {
-                    if (!in_array($column, $event->options[PaginatorInterface::FILTER_FIELD_WHITELIST])) {
+                    if (!in_array($column, $event->options[PaginatorInterface::FILTER_FIELD_ALLOW_LIST])) {
                         throw new \UnexpectedValueException("Cannot filter by: [{$column}] this field is not in whitelist");
                     }
                 }

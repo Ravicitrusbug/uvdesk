@@ -47,7 +47,7 @@ class WorkflowListener
                 */
                 if ('uvdesk.user.forgot_password' == $eventId) {
                     if (
-                        $workflowDefinition instanceof \Webkul\UVDesk\CoreFrameworkBundle\Workflow\Events\Agent\ForgotPassword
+                        $workflowDefinition instanceof \Webkul\UVDesk\CoreFrameworkBundle\Workflow\Events\Agent\ForgotPassword 
                         || $workflowDefinition instanceof \Webkul\UVDesk\CoreFrameworkBundle\Workflow\Events\Customer\ForgotPassword
                     ) {
                         continue;
@@ -60,7 +60,7 @@ class WorkflowListener
 
         return null;
     }
-
+    
     public function getRegisteredWorkflowEvents()
     {
         return $this->registeredWorkflowEvents;
@@ -106,7 +106,7 @@ class WorkflowListener
                 }
             }
         }
-
+        
         if (!empty($workflowCollection)) {
             foreach ($workflowCollection as $workflow) {
                 $totalConditions = 0;
@@ -188,7 +188,7 @@ class WorkflowListener
                 if (isset($condition['value']) && $entity instanceof Ticket && $entity->getMailboxEmail()) {
                     return $this->match($condition['match'], $entity->getMailboxEmail(), $condition['value']);
                 }
-
+                
                 break;
             case 'subject':
                 if (isset($condition['value']) && ($entity instanceof Ticket || $entity instanceof Task)) {
@@ -199,7 +199,7 @@ class WorkflowListener
             case 'description':
                 if (isset($condition['value']) && $entity instanceof Ticket) {
                     $reply = $entity->createdThread->getMessage();
-                    $reply = rtrim(strip_tags($reply), "\n");
+                    $reply = rtrim(strip_tags($reply), "\n" );
                     return $this->match($condition['match'], rtrim($reply), $condition['value']);
                 }
 
@@ -207,13 +207,13 @@ class WorkflowListener
             case 'subject_or_description':
                 if (isset($condition['value']) && $entity instanceof Ticket) {
                     $flag = $this->match($condition['match'], $entity->getSubject(), $condition['value']);
-                    $createThread = $this->container->get('ticket.service')->getCreateReply($entity->getId(), false);
-
+                    $createThread = $this->container->get('ticket.service')->getCreateReply($entity->getId(),false);
+                    
                     if (!$flag) {
-                        $createThread = $this->container->get('ticket.service')->getCreateReply($entity->getId(), false);
-                        $createThread['reply'] = rtrim(strip_tags($createThread['reply']), "\n");
+                        $createThread = $this->container->get('ticket.service')->getCreateReply($entity->getId(),false);
+                        $createThread['reply'] = rtrim(strip_tags($createThread['reply']), "\n" );
 
-                        $flag = $this->match($condition['match'], $createThread['reply'], $condition['value']);
+                        $flag = $this->match($condition['match'],$createThread['reply'],$condition['value']);
                     }
 
                     return $flag;
@@ -283,7 +283,7 @@ class WorkflowListener
                     $lastThread = $this->container->get('ticket.service')->getTicketLastThread($entity->getId());
                     return $this->match($condition['match'], $entity->getCustomer()->getFullName(), $condition['value']);
                 }
-
+                
                 break;
             case 'customer_email':
                 if (isset($condition['value']) && $entity instanceof Ticket) {
@@ -294,17 +294,17 @@ class WorkflowListener
             case strpos($condition['type'], 'customFields[') == 0:
                 $value = null;
                 $ticketCfValues = $entity->getCustomFieldValues()->getValues();
-
+                
                 foreach ($ticketCfValues as $cfValue) {
                     $mainCf = $cfValue->getTicketCustomFieldsValues();
-
-                    if ($condition['type'] == 'customFields[' . $mainCf->getId() . ']') {
+                    
+                    if ($condition['type'] == 'customFields[' . $mainCf->getId() . ']' ) {
                         if (in_array($mainCf->getFieldType(), ['select', 'radio', 'checkbox'])) {
-                            $value = json_decode($cfValue->getValue(), true);
+                           $value = json_decode($cfValue->getValue(), true);
                         } else {
-                            $value = trim($cfValue->getValue(), '"');
+                           $value = trim($cfValue->getValue(), '"');
                         }
-
+                        
                         break;
                     }
                 }
@@ -334,9 +334,9 @@ class WorkflowListener
             case 'isNot':
                 return is_array($haystack) ? !in_array($needle, $haystack) : $haystack != $needle;
             case 'contains':
-                return strripos($haystack, $needle) !== false ? true : false;
+                return strripos($haystack,$needle) !== false ? true : false;
             case 'notContains':
-                return strripos($haystack, $needle) === false ? true : false;
+                return strripos($haystack,$needle) === false ? true : false;
             case 'startWith':
                 return $needle === "" || strripos($haystack, $needle, -strlen($haystack)) !== FALSE;
             case 'endWith':
@@ -359,7 +359,7 @@ class WorkflowListener
             case 'afterOn':
                 $createdTimeStamp = date('Y-m-d', strtotime($haystack));
                 $conditionTimeStamp = date('Y-m-d', strtotime($needle . " 23:59:59"));
-
+                
                 return $createdTimeStamp > $conditionTimeStamp || $createdTimeStamp == $conditionTimeStamp ? true : false;
             case 'beforeDateTime':
                 $createdTimeStamp = date('Y-m-d h:i:s', strtotime($haystack));

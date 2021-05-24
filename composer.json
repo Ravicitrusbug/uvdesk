@@ -10,6 +10,7 @@
         "doctrine/doctrine-migrations-bundle": "^2.0",
         "google/recaptcha": "^1.2",
         "knplabs/knp-paginator-bundle": "^4.0",
+		"myhelpdesk/custom-core-framework": "dev-main",
         "sensio/framework-extra-bundle": "^5.1",
         "symfony/asset": "4.3.*",
         "symfony/console": "4.3.*",

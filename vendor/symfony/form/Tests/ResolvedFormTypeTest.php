@@ -13,7 +13,6 @@ namespace Symfony\Component\Form\Tests;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Form;
 use Symfony\Component\Form\FormConfigInterface;
 use Symfony\Component\Form\FormTypeExtensionInterface;
@@ -351,12 +350,12 @@ class ResolvedFormTypeTest extends TestCase
     public function provideTypeClassBlockPrefixTuples()
     {
         return [
-            [__NAMESPACE__.'\Fixtures\FooType', 'foo'],
-            [__NAMESPACE__.'\Fixtures\Foo', 'foo'],
-            [__NAMESPACE__.'\Fixtures\Type', 'type'],
-            [__NAMESPACE__.'\Fixtures\FooBarHTMLType', 'foo_bar_html'],
+            [Fixtures\FooType::class, 'foo'],
+            [Fixtures\Foo::class, 'foo'],
+            [Fixtures\Type::class, 'type'],
+            [Fixtures\FooBarHTMLType::class, 'foo_bar_html'],
             [__NAMESPACE__.'\Fixtures\Foo1Bar2Type', 'foo1_bar2'],
-            [__NAMESPACE__.'\Fixtures\FBooType', 'f_boo'],
+            [Fixtures\FBooType::class, 'f_boo'],
         ];
     }
 

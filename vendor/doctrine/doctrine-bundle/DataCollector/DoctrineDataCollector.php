@@ -2,7 +2,6 @@
 
 namespace Doctrine\Bundle\DoctrineBundle\DataCollector;
 
-use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\Cache\Logging\CacheLoggerChain;
 use Doctrine\ORM\Cache\Logging\StatisticsCacheLogger;
 use Doctrine\ORM\Configuration;
@@ -10,6 +9,7 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\ClassMetadataFactory;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\Tools\SchemaValidator;
+use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 use Symfony\Bridge\Doctrine\DataCollector\DoctrineDataCollector as BaseCollector;
 use Symfony\Component\HttpFoundation\Request;
@@ -137,6 +137,8 @@ class DoctrineDataCollector extends BaseCollector
         foreach ($this->data['queries'] as &$queries) {
             foreach ($queries as &$query) {
                 $query['params'] = $this->cloneVar($query['params']);
+                // To be removed when the required minimum version of symfony/doctrine-bridge is >= 4.4
+                $query['runnable'] = $query['runnable'] ?? true;
             }
         }
 
