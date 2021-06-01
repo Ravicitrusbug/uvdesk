@@ -583,6 +583,31 @@
                             {% endif %}
                         </div>
                     </div>
+					
+					{% if user_service.isAccessAuthorized('ROLE_AGENT_ASSIGN_TICKET_GROUP') %}
+                        <div class="uv-element-block">
+                            <label class="uv-aside-select-label">Additional Organizations</label>
+
+                            <select id="select-additional-organizations" class="chosen-select" name="states[]" multiple data-placeholder="Choose a organization...">
+                                    {% for team in supportTeamCollection %}
+                                    <option value="{{ team.id }}">{{ team.name }}</option>
+                                    {% endfor %}
+                                </select>
+                        </div>
+						{% if ticket_service.getTicketOrganizations(ticket.id)[0]['name'] != null %}
+							 <div class="addition-organizations-list" style="margin-top: 10px">
+								{% for organization in ticket_service.getTicketOrganizations(ticket.id) %}
+								<a class="uv-btn-tag delete-additional-organizations" data-organization_id={{ organization.id }}>
+                                    <span class="uv-tag">
+                                        <span class="uv-icon-remove-dark-before"></span>
+                                        {{ organization.name }}
+                                    </span>
+								</a>
+								{% endfor %}
+							 </div>
+						{% endif %}
+					 {% endif %}
+
                 </div>
             </div>
 
@@ -2911,4 +2936,43 @@
             };
         }
     </script>
+	
+    // Ticket Additional organization
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js"></script>
+	<script>
+        $('#select-additional-organizations').chosen({
+            no_results_text: "Oops, nothing found!",
+            width: "95%"
+        });
+		$('#select-additional-organizations').change(function(){
+            app.appView.showLoader();
+			$.ajax({
+				url : "{{ path('helpdesk_member_update_ticket_additional_organization_xhr') }}",
+				type : 'POST',
+				data: { ticketId : {{ ticket.id }}, organizationId :  $(this).val() },
+				dataType : 'json',
+				success : function(response) {
+                    app.appView.hideLoader();
+                    app.appView.renderResponseAlert(response);
+                    window.location.reload();
+				}
+			});
+		});
+
+        $('.delete-additional-organizations').click(function(){
+           var organizationId =  $(this).data('organization_id');
+            $.ajax({
+				url : "{{ path('helpdesk_member_delete_additional_ticket_organization_xhr') }}",
+				type : 'POST',
+				data: { ticketId : {{ ticket.id }}, organizationId : organizationId },
+				dataType : 'json',
+				success : function(response) {
+                    app.appView.hideLoader();
+                    app.appView.renderResponseAlert(response);
+				}
+			});
+            $(this).remove();
+		});
+	</script>
 {% endblock %}
