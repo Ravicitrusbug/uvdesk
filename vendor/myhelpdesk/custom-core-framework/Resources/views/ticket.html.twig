@@ -1235,12 +1235,16 @@
                 <thead>
                 </thead>
                 <tbody>
-                    {% if ticket_service.getTicketStatusLogs(ticket.id)[0]['firstName'] != null %}
+                    {% if ticket_service.getTicketStatusLogs(ticket.id) %}
 								{% for log in ticket_service.getTicketStatusLogs(ticket.id) %}
 								<tr>
 									<td><b>{{ log.firstName }}</b> Changed status from <b>{{ log.oldStatus }}</b> To <b>{{ log.newStatus }}</b> at {{ log.changedAt|date('m-d-Y H:i:s') }}</td>
 								</tr>
 								{% endfor %}
+					{% else %}
+                                <tr>
+									<td>History not found</td>
+								</tr>
 					{% endif %}
                 </tbody>
             </table>
