@@ -1026,7 +1026,27 @@ class TicketXHR extends Controller
             $em->persist($ticket);
             $em->flush();
             $json['alertClass'] = 'success';
-            $json['alertMessage'] = $this->translator->trans('Success ! Organizations deleted successfully.');
+            $json['alertMessage'] = $this->translator->trans('Success ! Organization deleted successfully.');
+        }
+
+        $response = new Response(json_encode($json));
+        $response->headers->set('Content-Type', 'application/json');
+        return $response;
+    }
+
+    public function deleteSingleTicket(Request $request)
+    {
+        $organizationId = $request->request->get('organizationId');
+        $em = $this->getDoctrine()->getManager();
+        $ticketId = $request->request->get('ticketId');
+        $ticket = $em->getRepository('UVDeskCoreFrameworkBundle:Ticket')->find($ticketId);
+
+        if (!empty($organizationId)) {
+            $ticket->setSupportTeam(null);
+            $em->persist($ticket);
+            $em->flush();
+            $json['alertClass'] = 'success';
+            $json['alertMessage'] = $this->translator->trans('Success ! Organization deleted successfully.');
         }
 
         $response = new Response(json_encode($json));

@@ -545,7 +545,8 @@ class TicketService
                 'agent' => null,
                 'customer' => null,
                 'hasAttachments' => $ticketHasAttachments,
-                'lastReplyTime' => $lastRepliedTime
+                'lastReplyTime' => $lastRepliedTime,
+                'status' => $ticketDetails['description'],
             ];
 
             if (!empty($ticketDetails['agentId'])) {
@@ -1768,6 +1769,30 @@ class TicketService
         $qb->select('so.name,so.id')->from('UVDeskCoreFrameworkBundle:Ticket', 't')
             ->leftJoin('t.supportOrganizations', 'so')
             ->andWhere('t.id = :ticketId')
+            ->setParameter('ticketId', $ticketId);
+
+        $result = $qb->getQuery()->getArrayResult();
+        return $result ? $result : [];
+    }
+
+    public function getTicketSingleOrganization($ticketId)
+    {
+        $qb = $this->entityManager->createQueryBuilder();
+        $qb->select('supportTeam.name,supportTeam.id')->from('UVDeskCoreFrameworkBundle:Ticket', 't')
+            ->leftJoin('t.supportTeam', 'supportTeam')
+            ->andWhere('t.id = :ticketId')
+            ->setParameter('ticketId', $ticketId);
+
+        $result = $qb->getQuery()->getArrayResult();
+        return $result ? $result : [];
+    }
+
+    public function getTicketStatusLogs($ticketId)
+    {
+        $qb = $this->entityManager->createQueryBuilder();
+        $qb->select('t.oldStatus,t.newStatus,t.changedAt,user.firstName')->from('UVDeskCoreFrameworkBundle:TicketStatusLog', 't')
+            ->leftJoin('t.user', 'user')
+            ->where('t.ticket = :ticketId')
             ->setParameter('ticketId', $ticketId);
 
         $result = $qb->getQuery()->getArrayResult();

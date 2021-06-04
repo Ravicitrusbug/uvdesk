@@ -516,6 +516,7 @@
                         <th data-index="type1">{{ 'Type'|trans }}</th>
                         <th data-index="replies">{{ 'Replies'|trans }}</th>
                         <th data-index="agent">{{ 'Agent'|trans }}</th>
+                        <th data-index="status">{{ 'Status'|trans }}</th>
                     </tr>
                     </thead>
 
@@ -1431,6 +1432,7 @@
                 <% } %>
             </a>
         </td>
+        <td data-value="{{ 'Status'|trans }}" data-index="status"><%= status %></td>
     </script>
 
     <script type="text/javascript">
