@@ -276,13 +276,15 @@ class TicketRepository extends \Doctrine\ORM\EntityRepository
                 customer.email as customerEmail, 
                 customerInstance.profileImagePath as customersmallThumbnail, 
                 CONCAT(customer.firstName, ' ', customer.lastName) AS customerName, 
-                CONCAT(agent.firstName,' ', agent.lastName) AS agentName
+                CONCAT(agent.firstName,' ', agent.lastName) AS agentName,
+                status.description as description
             ")
             ->from('UVDeskCoreFrameworkBundle:Ticket', 'ticket')
             ->leftJoin('ticket.type', 'type')
             ->leftJoin('ticket.agent', 'agent')
             ->leftJoin('ticket.threads', 'threads')
             ->leftJoin('ticket.priority', 'priority')
+            ->leftJoin('ticket.status', 'status')
             ->leftJoin('ticket.customer', 'customer')
             ->leftJoin('ticket.supportTeam', 'supportTeam')
             ->leftJoin('ticket.supportTags', 'supportTags')
