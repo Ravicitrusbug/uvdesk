@@ -244,6 +244,10 @@ helpdesk_member_delete_single_ticket_organization_xhr:
   path: /ticket/delete-single/ticket-organization
   controller: Webkul\UVDesk\CoreFrameworkBundle\Controller\TicketXHR::deleteSingleTicket
 
+helpdesk_member_export_ticket_organization_xhr:
+  path: /ticket/export
+  controller: Webkul\UVDesk\CoreFrameworkBundle\Controller\Ticket::export
+
 helpdesk_member_ticket_download_attachment:
   path: /ticket/download/{attachmendId}
   controller: Webkul\UVDesk\CoreFrameworkBundle\Controller\Ticket::downloadAttachment

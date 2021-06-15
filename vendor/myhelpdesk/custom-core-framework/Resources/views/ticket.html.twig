@@ -952,7 +952,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="uv-dropdown reply">
+                                    <div class="uv-dropdown reply as">
                                         <div class="uv-btn uv-dropdown-other">{{ 'Reply'|trans }} <span class="uv-icon-down-light"></span></div>
                                         <div class="uv-dropdown-list uv-top-left">
                                             <div class="uv-dropdown-container">
@@ -961,8 +961,8 @@
                                                     <li data-id="">{{ 'Submit'|trans }}</li>
                                                     {% if user_service.isAccessAuthorized('ROLE_AGENT_UPDATE_TICKET_STATUS') %}
                                                         <li data-id="open">{{ 'Submit And Open'|trans }}</li>
-                                                        <li data-id="pending">{{ 'Submit And Pending'|trans }}</li>
-                                                        <li data-id="answered">{{ 'Submit And Answered'|trans }}</li>
+                                                        <li data-id="inprogress">{{ 'Submit And In Progress'|trans }}</li>
+                                                        <li data-id="waitingoncustomer">{{ 'Submit And Waiting On Customer'|trans }}</li>
                                                         <li data-id="resolved">{{ 'Submit And Resolved'|trans }}</li>
                                                         <li data-id="closed">{{ 'Submit And Closed'|trans }}</li>
                                                     {% endif %}
@@ -1110,7 +1110,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="uv-dropdown reply">
+                                        <div class="uv-dropdown reply df">
                                             <div class="uv-btn uv-dropdown-other">{{ 'Reply'|trans}}<span class="uv-icon-down-light"></span></div>
 
                                             <div class="uv-dropdown-list uv-top-left">
@@ -1120,8 +1120,8 @@
                                                         <li data-id="">{{ 'Submit'|trans }}</li>
                                                         {% if user_service.isAccessAuthorized('ROLE_AGENT_UPDATE_TICKET_STATUS') %}
                                                             <li data-id="open">{{ 'Submit And Open'|trans }}</li>
-                                                            <li data-id="pending">{{ 'Submit And Pending'|trans }}</li>
-                                                            <li data-id="answered">{{ 'Submit And Answered'|trans }}</li>
+                                                            <li data-id="inprogress">{{ 'Submit And In Progress'|trans }}</li>
+                                                            <li data-id="waitingoncustomer">{{ 'Submit And Waiting On Customer'|trans }}</li>
                                                             <li data-id="resolved">{{ 'Submit And Resolved'|trans }}</li>
                                                             <li data-id="closed">{{ 'Submit And Closed'|trans }}</li>
                                                         {% endif %}
