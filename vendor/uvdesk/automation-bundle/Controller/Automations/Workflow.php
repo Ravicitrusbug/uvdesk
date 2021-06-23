@@ -21,12 +21,12 @@ class Workflow extends AbstractController
     const WORKFLOW_AUTOMATIC = 1;
     const NAME_LENGTH = 100;
     const DESCRIPTION_LENGTH = 200;
-    
+
     private $userService;
     private $translator;
     private $workflowListnerService;
-    
-    public function __construct(UserService $userService, WorkflowListener $workflowListnerService,TranslatorInterface $translator)
+
+    public function __construct(UserService $userService, WorkflowListener $workflowListnerService, TranslatorInterface $translator)
     {
         $this->userService = $userService;
         $this->workflowListnerService = $workflowListnerService;
@@ -56,7 +56,7 @@ class Workflow extends AbstractController
 
         $form = $this->createForm(DefaultForm::class);
 
-        if($request->request->all()) {
+        if ($request->request->all()) {
             $form->submit($request->request->all());
         }
 
@@ -104,7 +104,7 @@ class Workflow extends AbstractController
                 }
             }
 
-          
+
             if (empty($error)) {
                 // Check if new workflow and old one belong to the same class
                 if (!empty($workflow) && $workflow instanceof $workflowClass) {
@@ -123,7 +123,7 @@ class Workflow extends AbstractController
                 $newWorkflow->setActions($workflowActionsArray);
                 $newWorkflow->setDateAdded(new \Datetime);
                 $newWorkflow->setDateUpdated(new \Datetime);
-                
+
 
                 $formDataGetEvents = array_unique($formData->get('events'), SORT_REGULAR);
                 if ($newWorkflow->getWorkflowEvents()) {
@@ -151,9 +151,11 @@ class Workflow extends AbstractController
                     $entityManager->flush();
                 }
 
-                $this->addFlash('success', $request->attributes->get('id')
-                    ? $this->translator->trans('Success! Workflow has been updated successfully.')
-                    :  $this->translator->trans('Success! Workflow has been added successfully.')
+                $this->addFlash(
+                    'success',
+                    $request->attributes->get('id')
+                        ? $this->translator->trans('Success! Workflow has been updated successfully.')
+                        :  $this->translator->trans('Success! Workflow has been added successfully.')
                 );
 
                 return $this->redirectToRoute('helpdesk_member_workflow_collection');
@@ -169,7 +171,7 @@ class Workflow extends AbstractController
                 'conditions' => $request->request->get('conditions'),
             ];
         }
-      
+
         return $this->render('@UVDeskAutomation//Workflow//createWorkflow.html.twig', array(
             'form' => $form->createView(),
             'error' => $error,
@@ -221,13 +223,13 @@ class Workflow extends AbstractController
 
         $form = $this->createForm(DefaultForm::class);
 
-        if($request->request->all()) {
+        if ($request->request->all()) {
             $form->submit($request->request->all());
         }
 
         if ($form->isSubmitted()) {
             $formData = $request->request;
-            
+
             $workflowClass = 'Webkul\UVDesk\AutomationBundle\Entity\Workflow';
             $workflowActionsArray = $request->request->get('actions');
 
@@ -310,7 +312,7 @@ class Workflow extends AbstractController
                 if ($newWorkflow->getWorkflowEvents()) {
                     foreach ($newWorkflow->getWorkflowEvents() as $newWorkflowEvent) {
                         if ($thisKey = array_search([
-                            'event' => current($exNewEventEvent = explode('.', $newWorkflowEvent->getEvent())), 
+                            'event' => current($exNewEventEvent = explode('.', $newWorkflowEvent->getEvent())),
                             'trigger' => end($exNewEventEvent)
                         ], $formDataGetEvents)) {
                             unset($formDataGetEvents[$thisKey]);
@@ -336,9 +338,11 @@ class Workflow extends AbstractController
                     $entityManager->flush();
                 }
 
-                $this->addFlash('success', $request->attributes->get('id')
-                    ? $this->translator->trans('Success! Workflow has been updated successfully.')
-                    :  $this->translator->trans('Success! Workflow has been added successfully.')
+                $this->addFlash(
+                    'success',
+                    $request->attributes->get('id')
+                        ? $this->translator->trans('Success! Workflow has been updated successfully.')
+                        :  $this->translator->trans('Success! Workflow has been added successfully.')
                 );
 
                 return $this->redirectToRoute('helpdesk_member_workflow_collection');
@@ -360,7 +364,7 @@ class Workflow extends AbstractController
                 'conditions' => $request->request->get('conditions'),
             ];
         }
-      
+
         return $this->render('@UVDeskAutomation//Workflow//editWorkflow.html.twig', array(
             'form' => $form->createView(),
             'error' => $error,
@@ -372,10 +376,45 @@ class Workflow extends AbstractController
     //Remove Workflow
     public function deleteWorkflow(Request $request)
     {
-
-    } 
-    public function translate($string,$params = array())
+    }
+    public function translate($string, $params = array())
     {
-        return $this->translator->trans($string,$params);
+        return $this->translator->trans($string, $params);
+    }
+
+    public function cloneWorkflow(Request $request)
+    {
+        $entityManager = $this->getDoctrine()->getManager();
+        $workflowClass = 'Webkul\UVDesk\AutomationBundle\Entity\Workflow';
+        $existing = $this->getDoctrine()->getManager()->getRepository('UVDeskAutomationBundle:Workflow')->findOneById($request->request->get('workFlowId'));
+
+        $newWorkflow = new $workflowClass;
+        $newWorkflow->setName($existing->getName());
+        $newWorkflow->setDescription($existing->getDescription());
+        $newWorkflow->setStatus($existing->getStatus());
+        $newWorkflow->setActions($existing->getActions());
+        $newWorkflow->setConditions($existing->getConditions());
+        $newWorkflow->setDateAdded(new \Datetime);
+        $newWorkflow->setDateUpdated(new \Datetime);
+        $entityManager->persist($newWorkflow);
+        $entityManager->flush();
+        if ($existing->getWorkflowEvents()) {
+            foreach ($existing->getWorkflowEvents() as $events) {
+                $event = new Entity\WorkflowEvents;
+                $event->setEvent($events->getEvent());
+                $event->setWorkflow($newWorkflow);
+                $event->setEventId($newWorkflow->getId());
+                $entityManager->persist($event);
+                $entityManager->flush();
+            }
+        }
+        if (!empty($newWorkflow)) {
+            $json['alertClass'] = 'success';
+            $json['alertMessage'] = $this->translator->trans('Success ! Workflow cloned successfully.');
+        }
+
+        $response = new Response(json_encode($json));
+        $response->headers->set('Content-Type', 'application/json');
+        return $response;
     }
 }

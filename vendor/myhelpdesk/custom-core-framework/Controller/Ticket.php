@@ -438,7 +438,7 @@ class Ticket extends Controller
         $supportTeamReference  = $entityManager->getRepository('UVDeskCoreFrameworkBundle:User')->getUserSupportTeamReferences($activeUser);
 
         // // Get base query
-        $baseQuery = $ticketRepository->prepareBaseTicketQuery($activeUser, $supportGroupReference, $supportTeamReference, $params);
+        $baseQuery = $ticketRepository->prepareBaseTicketQuery($activeUser, $supportGroupReference, $supportTeamReference, $params, false);
         $tickets = $baseQuery->getQuery()->getArrayResult();
 
         if (!empty($tickets)) {

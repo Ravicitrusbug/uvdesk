@@ -32,6 +32,7 @@
 							<span class="uv-icon-add"></span>
 							{{ "New Workflow"|trans }}
 						</a>
+						
 						<!--// Add Button -->
 				</div>
             </div>
@@ -70,14 +71,17 @@
             	<span class="uv-text-danger">{{ 'Disabled'|trans }}</span>
         	<% } %>
 		</td>
-		<td data-value="{{ 'Action'|trans }}" class="uv-last">
+		<td data-value="{{ 'Action'|trans }}" class="uv-last" style="width:264px">
 			<a href="<%= path.replace('replaceId', id) %>" class="uv-btn-stroke edit-workflow" data-value="<%= id %>">
 				{{ "Edit"|trans }}
 			</a>
 			<div class="uv-btn-stroke delete-workflow">
 				{{ "Delete"|trans }}
 			</div>
-		</td>
+			<div class="uv-btn-stroke clone-workflow">
+				Clone
+			</div>
+		</td>	
     </script>
 	<!-- //Workflow list item template -->
 	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
@@ -133,7 +137,8 @@
 				tagName : "tr",
 				template : _.template($("#workflow_list_item_tmp").html()),
 				events : {
-					'click .delete-workflow' : "confirmRemove"
+					'click .delete-workflow' : "confirmRemove",
+					'click .clone-workflow' : "confirmClone"
 				},
 				render : function() {
 					this.$el.html(this.template(this.model.toJSON()));
@@ -144,6 +149,22 @@
 						workflowCollection.syncData();
 						app.appView.renderResponseAlert(response)
 					}
+				},
+				confirmClone : function(e) {
+					self = this;
+					console.log(this.model.get('id'));
+					app.appView.showLoader();
+					$.ajax({
+						url : "{{ path('workflows_clone') }}",
+						type : 'POST',
+						data: { workFlowId : this.model.get('id') },
+						dataType : 'json',
+						success : function(response) {
+							app.appView.hideLoader();
+							app.appView.renderResponseAlert(response);
+							window.location.reload();
+						}
+					});
 				},
 				confirmRemove: function(e) {
 					e.preventDefault();

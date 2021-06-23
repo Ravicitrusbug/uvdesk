@@ -199,7 +199,15 @@
                             {# Assets Visibilities #}
                             <div class="uv-dropdown asset-visibility">
                                 <div class="uv-dropdown-btn uv-vertical-align uv-margin-right-5">{{ 'Assets Visibility'|trans }}</div>
-                                <a href="/uvdesk/public/en/member/ticket/export?agent=5" type="button" class="uv-btn-action">
+                                
+                                {% if user_service.isAccessAuthorized('ROLE_AGENT_CREATE_TICKET') %}
+                                <a  type="button" data-action="create" class="uv-open-popup uv-btn-action" data-target="create-ticket-modal">
+                                    <span class="uv-icon-add"></span>
+                                    {{ 'Create Ticket'|trans }}
+                                </a>
+                                {% endif %}
+
+                                <a style="margin-left:10px" href="/uvdesk/public/en/member/ticket/export" type="button" class="uv-btn-action">
                                     <span class="uv-icon-add"></span>
                                     Export
                                 </a>
@@ -3057,6 +3065,10 @@
             var labelCollection = new LabelCollection();
             var labelListView = new LabelListView()
             var filter = new Filter({collection : ticketCollection});
+
+            setInterval(function(){ 
+                ticketCollection.syncData(); 
+            }, 60000);
 
             Backbone.history.start({
                 push_state:true
