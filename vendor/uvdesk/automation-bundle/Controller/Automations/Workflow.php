@@ -389,7 +389,7 @@ class Workflow extends AbstractController
         $existing = $this->getDoctrine()->getManager()->getRepository('UVDeskAutomationBundle:Workflow')->findOneById($request->request->get('workFlowId'));
 
         $newWorkflow = new $workflowClass;
-        $newWorkflow->setName($existing->getName());
+        $newWorkflow->setName($existing->getName() . ' - Copy');
         $newWorkflow->setDescription($existing->getDescription());
         $newWorkflow->setStatus($existing->getStatus());
         $newWorkflow->setActions($existing->getActions());

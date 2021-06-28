@@ -268,6 +268,7 @@ class TicketRepository extends \Doctrine\ORM\EntityRepository
                 supportGroup.name as groupName,
                 supportTeam.name as teamName, 
                 priority,
+                company.name as companyName,
                 type.code as typeName, 
                 agent.id as agentId,
                 agent.email as agentEmail,
@@ -284,6 +285,7 @@ class TicketRepository extends \Doctrine\ORM\EntityRepository
             ->leftJoin('ticket.agent', 'agent')
             ->leftJoin('ticket.threads', 'threads')
             ->leftJoin('ticket.priority', 'priority')
+            ->leftJoin('ticket.company', 'company')
             ->leftJoin('ticket.status', 'status')
             ->leftJoin('ticket.customer', 'customer')
             ->leftJoin('ticket.supportTeam', 'supportTeam')

@@ -95,6 +95,7 @@ class Ticket extends Controller
             'currentUserDetails' => $user->getAgentInstance()->getPartialDetails(),
             'supportGroupCollection' => $userRepository->getSupportGroups(),
             'supportTeamCollection' => $userRepository->getSupportTeams(),
+            'supportCompanyCollection' => $entityManager->getRepository('UVDeskCoreFrameworkBundle:SupportCompany')->findAll(),
             'ticketStatusCollection' => $entityManager->getRepository('UVDeskCoreFrameworkBundle:TicketStatus')->findAll(),
             'ticketTypeCollection' => $entityManager->getRepository('UVDeskCoreFrameworkBundle:TicketType')->findByIsActive(true),
             'ticketPriorityCollection' => $entityManager->getRepository('UVDeskCoreFrameworkBundle:TicketPriority')->findAll(),
