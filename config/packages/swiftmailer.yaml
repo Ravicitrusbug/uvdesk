@@ -1,4 +1,15 @@
 swiftmailer:
-    # url: '%env(MAILER_URL)%'
-    # spool: { type: 'memory' }
+    default_mailer: RTM.Cloud.Helpdesk
+    mailers:
+        RTM.Cloud.Helpdesk:
+            transport: smtp
+            username: helpdesk@rtmcloud.com.au
+            password: Hap84910
+            host: smtp.office365.com
+            port: 587
+            encryption: tls
+            auth_mode: login
+            sender_address: helpdesk@rtmcloud.com.au
+            delivery_addresses: ['helpdesk@rtmcloud.com.au']
+            disable_delivery: false
 

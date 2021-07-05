@@ -11,6 +11,10 @@ workflows_addaction:
     path:     /workflow/add
     controller: Webkul\UVDesk\AutomationBundle\Controller\Automations\Workflow::createWorkflow
 
+workflows_clone:
+    path: /workflow/clone
+    controller: Webkul\UVDesk\AutomationBundle\Controller\Automations\Workflow::cloneWorkflow
+
 workflows_editaction:
     path:     /workflow/edit/{id}
     controller: Webkul\UVDesk\AutomationBundle\Controller\Automations\Workflow::editWorkflow

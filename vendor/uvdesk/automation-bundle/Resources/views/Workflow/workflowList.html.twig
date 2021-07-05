@@ -63,19 +63,22 @@
 			<span class="uv-icon-drag" title="Reorder"></span>
 			<%- name %>
 		</td>
-        <td data-value="{{ 'Status'|trans }}">
+        <td data-value="{{ 'Status'|trans }}" style="width:264px">
 			<% if(status) { %>
             	<span class="uv-text-success">{{ 'Active'|trans }}</span>
             <% } else { %>
             	<span class="uv-text-danger">{{ 'Disabled'|trans }}</span>
         	<% } %>
 		</td>
-		<td data-value="{{ 'Action'|trans }}" class="uv-last">
+		<td data-value="{{ 'Action'|trans }}" class="uv-last" style="width:264px">
 			<a href="<%= path.replace('replaceId', id) %>" class="uv-btn-stroke edit-workflow" data-value="<%= id %>">
 				{{ "Edit"|trans }}
 			</a>
 			<div class="uv-btn-stroke delete-workflow">
 				{{ "Delete"|trans }}
+			</div>
+			<div class="uv-btn-stroke clone-workflow">
+				Clone
 			</div>
 		</td>
     </script>
@@ -133,7 +136,8 @@
 				tagName : "tr",
 				template : _.template($("#workflow_list_item_tmp").html()),
 				events : {
-					'click .delete-workflow' : "confirmRemove"
+					'click .delete-workflow' : "confirmRemove",
+					'click .clone-workflow' : "confirmClone"
 				},
 				render : function() {
 					this.$el.html(this.template(this.model.toJSON()));
@@ -148,6 +152,22 @@
 				confirmRemove: function(e) {
 					e.preventDefault();
 					app.appView.openConfirmModal(this)
+				},
+				confirmClone : function(e) {
+					self = this;
+					console.log(this.model.get('id'));
+					app.appView.showLoader();
+					$.ajax({
+						url : "{{ path('workflows_clone') }}",
+						type : 'POST',
+						data: { workFlowId : this.model.get('id') },
+						dataType : 'json',
+						success : function(response) {
+							app.appView.hideLoader();
+							app.appView.renderResponseAlert(response);
+							window.location.reload();
+						}
+					});
 				},
 				removeItem : function (e) {
 					app.appView.showLoader();

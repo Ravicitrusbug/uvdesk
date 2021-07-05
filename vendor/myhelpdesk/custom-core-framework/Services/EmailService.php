@@ -484,6 +484,7 @@ class EmailService
                     }
                 } catch (\Exception $e) {
                     // @TODO: Log exception - Mailbox not found
+					//dump($e->getMessage());die;
                     return;
                 }
             }
@@ -493,6 +494,7 @@ class EmailService
         try {
             $mailer = $this->container->get('swiftmailer.mailer' . (('default' == $mailerID) ? '' : ".$mailerID"));
         } catch (\Exception $e) {
+			//dump($e->getMessage());die;
             // @TODO: Log exception - Mailer not found
             return;
         }
@@ -530,6 +532,7 @@ class EmailService
             
             return "<$messageId>";
         } catch (\Exception $e) {
+			 //dump($e->getMessage());die;
             // @TODO: Log exception
         }
 

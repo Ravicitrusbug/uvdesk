@@ -20,6 +20,9 @@ use Webkul\UVDesk\CoreFrameworkBundle\Services\EmailService;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+
 class Ticket extends Controller
 {
     private $userService;
@@ -57,13 +60,13 @@ class Ticket extends Controller
         $ticketRepository = $entityManager->getRepository('UVDeskCoreFrameworkBundle:Ticket');
 
         $ticket = $ticketRepository->findOneById($ticketId);
-        
+
         if (empty($ticket)) {
             throw new \Exception('Page not found');
         }
-        
+
         $user = $this->userService->getSessionUser();
-        
+
         // Proceed only if user has access to the resource
         if (false == $this->ticketService->isTicketAccessGranted($ticket, $user)) {
             throw new \Exception('Access Denied', 403);
@@ -71,7 +74,7 @@ class Ticket extends Controller
 
         $agent = $ticket->getAgent();
         $customer = $ticket->getCustomer();
-        
+
         // Mark as viewed by agents
         if (false == $ticket->getIsAgentViewed()) {
             $ticket->setIsAgentViewed(true);
@@ -79,7 +82,7 @@ class Ticket extends Controller
             $entityManager->persist($ticket);
             $entityManager->flush();
         }
-	
+
         $quickActionButtonCollection->prepareAssets();
 
         return $this->render('@UVDeskCoreFramework//ticket.html.twig', [
@@ -92,6 +95,7 @@ class Ticket extends Controller
             'currentUserDetails' => $user->getAgentInstance()->getPartialDetails(),
             'supportGroupCollection' => $userRepository->getSupportGroups(),
             'supportTeamCollection' => $userRepository->getSupportTeams(),
+            'supportCompanyCollection' => $entityManager->getRepository('UVDeskCoreFrameworkBundle:SupportCompany')->findAll(),
             'ticketStatusCollection' => $entityManager->getRepository('UVDeskCoreFrameworkBundle:TicketStatus')->findAll(),
             'ticketTypeCollection' => $entityManager->getRepository('UVDeskCoreFrameworkBundle:TicketType')->findByIsActive(true),
             'ticketPriorityCollection' => $entityManager->getRepository('UVDeskCoreFrameworkBundle:TicketPriority')->findAll(),
@@ -230,7 +234,7 @@ class Ticket extends Controller
         $errorContext = [];
         $em = $this->getDoctrine()->getManager();
 
-        if($id = $request->attributes->get('ticketTypeId')) {
+        if ($id = $request->attributes->get('ticketTypeId')) {
             $type = $em->getRepository('UVDeskCoreFrameworkBundle:TicketType')->find($id);
             if (!$type) {
                 $this->noResultFound();
@@ -289,10 +293,10 @@ class Ticket extends Controller
         }
 
         $json = [];
-        if($request->getMethod() == "DELETE") {
+        if ($request->getMethod() == "DELETE") {
             $em = $this->getDoctrine()->getManager();
             $tag = $em->getRepository('UVDeskCoreFrameworkBundle:Tag')->find($tagId);
-            if($tag) {
+            if ($tag) {
                 $em->remove($tag);
                 $em->flush();
                 $json['alertClass'] = 'success';
@@ -347,7 +351,7 @@ class Ticket extends Controller
         $entityManager->remove($ticket);
         $entityManager->flush();
 
-        $this->addFlash('success', $this->get('translator')->trans('Success ! Success ! Ticket Id #'. $ticketId .' has been deleted successfully.'));
+        $this->addFlash('success', $this->get('translator')->trans('Success ! Success ! Ticket Id #' . $ticketId . ' has been deleted successfully.'));
 
         return $this->redirectToRoute('helpdesk_member_ticket_collection');
     }
@@ -363,7 +367,7 @@ class Ticket extends Controller
             $this->noResultFound();
         }
 
-        $zipname = 'attachments/' .$threadId.'.zip';
+        $zipname = 'attachments/' . $threadId . '.zip';
         $zip = new \ZipArchive;
 
         $zip->open($zipname, \ZipArchive::CREATE);
@@ -396,16 +400,139 @@ class Ticket extends Controller
             $this->noResultFound();
         }
 
-        $path = $this->kernel->getProjectDir() . "/public/". $attachment->getPath();
+        $path = $this->kernel->getProjectDir() . "/public/" . $attachment->getPath();
 
         $response = new Response();
         $response->setStatusCode(200);
 
         $response->headers->set('Content-type', $attachment->getContentType());
-        $response->headers->set('Content-Disposition', 'attachment; filename='. $attachment->getName());
+        $response->headers->set('Content-Disposition', 'attachment; filename=' . $attachment->getName());
         $response->sendHeaders();
         $response->setContent(readfile($path));
 
         return $response;
+    }
+
+    public function export(Request $request)
+    {
+        $params = $request->query->all();
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('User List');
+
+        if (isset($params['columns'])) {
+            $columns = explode(',', $params['columns']);
+            $i = 1;
+            foreach ($columns as $column) {
+                $alphabet = $this->numberToAlphabet($i);
+                $sheet->getCell($alphabet . '1')->setValue(ucwords(str_replace('-', ' ', $column)));
+                $i++;
+            }
+        }
+
+        $entityManager = $this->getDoctrine()->getManager();
+        $activeUser = $this->container->get('user.service')->getSessionUser();
+        $ticketRepository = $entityManager->getRepository('UVDeskCoreFrameworkBundle:Ticket');
+        $supportGroupReference = $entityManager->getRepository('UVDeskCoreFrameworkBundle:User')->getUserSupportGroupReferences($activeUser);
+        $supportTeamReference  = $entityManager->getRepository('UVDeskCoreFrameworkBundle:User')->getUserSupportTeamReferences($activeUser);
+
+        // // Get base query
+        $baseQuery = $ticketRepository->prepareBaseTicketQuery($activeUser, $supportGroupReference, $supportTeamReference, $params, false);
+        $tickets = $baseQuery->getQuery()->getArrayResult();
+
+        if (!empty($tickets)) {
+            $ticketIndex = 2;
+            foreach ($tickets as $ticket) {
+                if (isset($params['columns'])) {
+                    $columns = explode(',', $params['columns']);
+                    $columnIndex = 1;
+                    foreach ($columns as $column) {
+                        $alphabet = $this->numberToAlphabet($columnIndex);
+                        //$ticketQueryColumn = $this->getTicketColumnFromSelectedColumn($column);
+
+                        if ($column === 'id') {
+                            $value = $ticket[0]['id'];
+                        } else if ($column === 'subject') {
+                            $value = $ticket[0]['subject'];
+                        } else if ($column === 'customer-name') {
+                            $value = $ticket['customerName'];
+                        } else if ($column === 'group') {
+                            $value = $ticket['groupName'];
+                        } else if ($column === 'organization') {
+                            $value = $ticket['teamName'];
+                        } else if ($column === 'type') {
+                            $value = $ticket['typeName'];
+                        } else if ($column === 'agent') {
+                            $value = $ticket['agentName'];
+                        } else if ($column === 'status') {
+                            $value = $ticket['description'];
+                        } else if ($column === 'company') {
+                            $value = $ticket['companyName'];
+                        } else if ($column === 'customer-email') {
+                            $value = $ticket['customerEmail'];
+                        } else if ($column === 'timestamp') {
+                            $website = $entityManager->getRepository('UVDeskCoreFrameworkBundle:Website')->findOneBy(['code' => 'helpdesk']);
+                            $timeZone = $website->getTimezone();
+                            $timeFormat = $website->getTimeformat();
+                            $agentTimeZone = $activeUser->getTimezone();
+                            $agentTimeFormat = $activeUser->getTimeformat();
+                            $dbTime = $ticket[0]['createdAt'];
+                            $formattedTime = $this->ticketService->fomatTimeByPreference($dbTime, $timeZone, $timeFormat, $agentTimeZone, $agentTimeFormat);
+                            $value = $formattedTime['dateTimeZone'];
+                        } else if ($column === 'last-reply') {
+                            $currentDateTime  = new \DateTime('now');
+                            if ($this->ticketService->getLastReply($ticket[0]['id'])) {
+                                $lastRepliedTime =
+                                    $this->ticketService->time2string($currentDateTime->getTimeStamp() - $this->ticketService->getLastReply($ticket[0]['id'])['createdAt']->getTimeStamp());
+                            } else {
+                                $lastRepliedTime =
+                                    $this->ticketService->time2string($currentDateTime->getTimeStamp() - $ticket[0]['createdAt']->getTimeStamp());
+                            }
+                            $value = $lastRepliedTime;
+                        } else {
+                            $value = '';
+                        }
+                        $sheet->getCell($alphabet . $ticketIndex)->setValue($value);
+                        $columnIndex++;
+                    }
+                }
+
+                $ticketIndex++;
+            }
+        }
+
+        // Increase row cursor after header write
+        //$sheet->fromArray($list, null, 'A2', true);
+        $writer = new Xlsx($spreadsheet);
+
+        $date = date('d-m-y-' . substr((string)microtime(), 1, 8));
+        $date = str_replace(".", "", $date);
+        $filename = "export_" . $date . ".xlsx";
+
+        try {
+            $writer->save($filename);
+            $content = file_get_contents($filename);
+        } catch (Exception $e) {
+            exit($e->getMessage());
+        }
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . urlencode($filename) . '"');
+        unlink($filename);
+        exit($content);
+    }
+
+    public function numberToAlphabet($number)
+    {
+        $number = intval($number);
+        if ($number <= 0) {
+            return '';
+        }
+        $alphabet = '';
+        while ($number != 0) {
+            $p = ($number - 1) % 26;
+            $number = intval(($number - $p) / 26);
+            $alphabet = chr(65 + $p) . $alphabet;
+        }
+        return $alphabet;
     }
 }

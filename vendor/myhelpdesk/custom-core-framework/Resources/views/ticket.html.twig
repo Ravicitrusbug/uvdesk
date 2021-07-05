@@ -619,6 +619,23 @@
 						</div>
 					 {% endif %}
 
+                     {# Update Ticket Support Company #}
+					 {% if user_service.isAccessAuthorized('ROLE_AGENT_ASSIGN_TICKET_GROUP') %}
+                        <div class="uv-element-block uv-aside-select">
+                            <label class="uv-aside-select-label">Company</label>
+                            <select id="select-additional-company" class="chosen-select" name="company" data-placeholder="Choose a company...">
+                                    {% for company in supportCompanyCollection %}
+                                    {% set selected = '' %}
+                                    {% if ticket.company %}
+                                        {% if ticket.company.id == company.id %}
+                                            {% set selected = 'selected' %}
+                                        {% endif %}
+                                     {% endif %}
+                                    <option value="{{ company.id }}" {{ selected }}>{{ company.name }}</option>
+                                    {% endfor %}
+                                </select>
+                        </div>
+					 {% endif %}
                 </div>
             </div>
 
@@ -952,7 +969,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="uv-dropdown reply">
+                                    <div class="uv-dropdown reply as">
                                         <div class="uv-btn uv-dropdown-other">{{ 'Reply'|trans }} <span class="uv-icon-down-light"></span></div>
                                         <div class="uv-dropdown-list uv-top-left">
                                             <div class="uv-dropdown-container">
@@ -961,8 +978,8 @@
                                                     <li data-id="">{{ 'Submit'|trans }}</li>
                                                     {% if user_service.isAccessAuthorized('ROLE_AGENT_UPDATE_TICKET_STATUS') %}
                                                         <li data-id="open">{{ 'Submit And Open'|trans }}</li>
-                                                        <li data-id="pending">{{ 'Submit And Pending'|trans }}</li>
-                                                        <li data-id="answered">{{ 'Submit And Answered'|trans }}</li>
+                                                        <li data-id="inprogress">{{ 'Submit And In Progress'|trans }}</li>
+                                                        <li data-id="waitingoncustomer">{{ 'Submit And Waiting On Customer'|trans }}</li>
                                                         <li data-id="resolved">{{ 'Submit And Resolved'|trans }}</li>
                                                         <li data-id="closed">{{ 'Submit And Closed'|trans }}</li>
                                                     {% endif %}
@@ -1110,7 +1127,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="uv-dropdown reply">
+                                        <div class="uv-dropdown reply df">
                                             <div class="uv-btn uv-dropdown-other">{{ 'Reply'|trans}}<span class="uv-icon-down-light"></span></div>
 
                                             <div class="uv-dropdown-list uv-top-left">
@@ -1120,8 +1137,8 @@
                                                         <li data-id="">{{ 'Submit'|trans }}</li>
                                                         {% if user_service.isAccessAuthorized('ROLE_AGENT_UPDATE_TICKET_STATUS') %}
                                                             <li data-id="open">{{ 'Submit And Open'|trans }}</li>
-                                                            <li data-id="pending">{{ 'Submit And Pending'|trans }}</li>
-                                                            <li data-id="answered">{{ 'Submit And Answered'|trans }}</li>
+                                                            <li data-id="inprogress">{{ 'Submit And In Progress'|trans }}</li>
+                                                            <li data-id="waitingoncustomer">{{ 'Submit And Waiting On Customer'|trans }}</li>
                                                             <li data-id="resolved">{{ 'Submit And Resolved'|trans }}</li>
                                                             <li data-id="closed">{{ 'Submit And Closed'|trans }}</li>
                                                         {% endif %}
@@ -1329,15 +1346,13 @@
                             <% } else { %>
                                 <li data-action="pin" data-id="0">{{ 'Pin Thread'|trans }}</li>
                             <% } %>
-                            <% if(threadType != 'note') { %>
-                                {% if user_service.isAccessAuthorized('ROLE_AGENT_MANAGE_LOCK_AND_UNLOCK_THREAD') %}
-                                    <% if(isLocked) { %>
-                                        <li data-action="lock" data-id="1">{{ 'Unlock Thread'|trans }}</li>
-                                    <% } else { %>
-                                        <li data-action="lock" data-id="0">{{ 'Lock Thread'|trans }}</li>
-                                    <% } %>
-                                {% endif %}
-                            <% } %>
+							{% if user_service.isAccessAuthorized('ROLE_AGENT_MANAGE_LOCK_AND_UNLOCK_THREAD') %}
+								<% if(isLocked) { %>
+									<li data-action="lock" data-id="1">{{ 'Unlock Thread'|trans }}</li>
+								<% } else { %>
+									<li data-action="lock" data-id="0">{{ 'Lock Thread'|trans }}</li>
+								<% } %>
+							{% endif %}
                             <li style="display: none;" data-action="translate">{{ 'Translate Thread'|trans }}</li>
                         </ul>
                     </div>
@@ -2975,7 +2990,11 @@
 	<script>
         $('#select-additional-organizations').chosen({
             no_results_text: "Oops, nothing found!",
-            width: "95%"
+            width: "100%"
+        });
+        $('#select-additional-company').chosen({
+            no_results_text: "Oops, nothing found!",
+            width: "100%"
         });
 		$('#select-additional-organizations').change(function(){
             app.appView.showLoader();
@@ -3017,6 +3036,21 @@
 				success : function(response) {
                     app.appView.hideLoader();
                     app.appView.renderResponseAlert(response);
+				}
+			});
+		});
+
+        $('#select-additional-company').change(function(){
+            app.appView.showLoader();
+            $.ajax({
+				url : "{{ path('helpdesk_member_update_ticket_company_xhr') }}",
+				type : 'POST',
+				data: { ticketId : {{ ticket.id }}, companyId :  $(this).val() },
+				dataType : 'json',
+				success : function(response) {
+                    app.appView.hideLoader();
+                    app.appView.renderResponseAlert(response);
+                    window.location.reload();
 				}
 			});
 		});

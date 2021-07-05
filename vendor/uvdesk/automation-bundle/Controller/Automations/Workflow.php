@@ -378,4 +378,40 @@ class Workflow extends AbstractController
     {
         return $this->translator->trans($string,$params);
     }
+	
+	public function cloneWorkflow(Request $request)
+    {
+        $entityManager = $this->getDoctrine()->getManager();
+        $workflowClass = 'Webkul\UVDesk\AutomationBundle\Entity\Workflow';
+        $existing = $this->getDoctrine()->getManager()->getRepository('UVDeskAutomationBundle:Workflow')->findOneById($request->request->get('workFlowId'));
+
+        $newWorkflow = new $workflowClass;
+        $newWorkflow->setName($existing->getName() . ' - Copy');
+        $newWorkflow->setDescription($existing->getDescription());
+        $newWorkflow->setStatus($existing->getStatus());
+        $newWorkflow->setActions($existing->getActions());
+        $newWorkflow->setConditions($existing->getConditions());
+        $newWorkflow->setDateAdded(new \Datetime);
+        $newWorkflow->setDateUpdated(new \Datetime);
+        $entityManager->persist($newWorkflow);
+        $entityManager->flush();
+        if ($existing->getWorkflowEvents()) {
+            foreach ($existing->getWorkflowEvents() as $events) {
+                $event = new Entity\WorkflowEvents;
+                $event->setEvent($events->getEvent());
+                $event->setWorkflow($newWorkflow);
+                $event->setEventId($newWorkflow->getId());
+                $entityManager->persist($event);
+                $entityManager->flush();
+            }
+        }
+        if (!empty($newWorkflow)) {
+            $json['alertClass'] = 'success';
+            $json['alertMessage'] = $this->translator->trans('Success ! Workflow cloned successfully.');
+        }
+
+        $response = new Response(json_encode($json));
+        $response->headers->set('Content-Type', 'application/json');
+        return $response;
+    }
 }
