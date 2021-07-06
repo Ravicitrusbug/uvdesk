@@ -41,6 +41,8 @@
 							</div>
 						</div>
 					</div>
+
+					<!--<a href="#agent-filters" rel="modal:open" type="button" class="uv-btn-action "><span class="uv-icon-add"></span> {{ 'Filters'|trans }}</a>-->
 				</div>
 
 				<div class="uv-action-bar-col-rt">
@@ -60,6 +62,9 @@
 						<th>{{ 'Name'|trans }}</th>
 						<th>{{ 'Email'|trans }}</th>
 						<th>{{ 'Role'|trans }}</th>
+						<th>{{ 'Company'|trans }}</th>
+						<th>{{ 'Group'|trans }}</th>
+						<th>{{ 'Team'|trans }}</th>
 						<th>{{ 'Status'|trans }}</th>
 						<th class="uv-last">{{ 'Action'|trans }}</th>
 					</tr>
@@ -69,9 +74,15 @@
 
 				{# Pagintation #}
 				<div class="navigation"></div>
+				<input type="hidden" name="test" id="test" value="1">
 			</div>
 		</div>
 	</div>
+
+	<div id="agent-filters" class="modal">
+		<h2>Status Change History</h2><br>
+        
+    </div>
 {% endblock %}
 
 {% block footer %}
@@ -116,6 +127,9 @@
 		</td>
 		<td data-value="Email"><%- email %></td>
 		<td data-value="Role"><%= role %></td>
+		<td data-value="Company"><%= companies %></td>
+		<td data-value="Group"><%= groups %></td>
+		<td data-value="Team"><%= teams %></td>
 		<td data-value="Status">
 			<% if (isEnabled) { %>
 			<span class="uv-text-success">{{ 'Active'|trans }}</span>
@@ -149,7 +163,8 @@
 				url : "{{ path('helpdesk_member_account_collection_xhr') }}",
 				filterParameters : {
 					"isActive" : "",
-					"search" : ""
+					"search" : "",
+					"test": ""
 				},
 				parseRecords: function (resp, options) {
 					return resp.users;
