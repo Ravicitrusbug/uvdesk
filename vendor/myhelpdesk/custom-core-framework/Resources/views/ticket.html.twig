@@ -624,6 +624,7 @@
                         <div class="uv-element-block uv-aside-select">
                             <label class="uv-aside-select-label">Site</label>
                             <select id="select-additional-company" class="chosen-select" name="company" data-placeholder="Choose a site...">
+                                    <option value=""></option>
                                     {% for company in supportCompanyCollection %}
                                     {% set selected = '' %}
                                     {% if ticket.company %}

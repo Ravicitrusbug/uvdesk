@@ -459,14 +459,25 @@ class Ticket extends Controller
                         } else if ($column === 'group') {
                             $value = $ticket['groupName'];
                         } else if ($column === 'organization') {
-                            $value = $ticket['teamName'];
+                            $additionalOrganizations =  $this->ticketService->getTicketOrganizations($ticket[0]['id']);
+                            if (!empty($additionalOrganizations[0]['name'] != null)) {
+                                if (!empty($ticket['teamName'])) {
+                                    $organizationNames = $ticket['teamName'] . ', ' . implode(' , ', array_column($additionalOrganizations, 'name'));
+                                } else {
+                                    $organizationNames = implode(' , ', array_column($additionalOrganizations, 'name'));
+                                }
+                            } else {
+                                $organizationNames =
+                                    $ticket['teamName'];
+                            }
+                            $value = $organizationNames;
                         } else if ($column === 'type') {
                             $value = $ticket['typeName'];
                         } else if ($column === 'agent') {
                             $value = $ticket['agentName'];
                         } else if ($column === 'status') {
                             $value = $ticket['description'];
-                        } else if ($column === 'company') {
+                        } else if ($column === 'site') {
                             $value = $ticket['companyName'];
                         } else if ($column === 'customer-email') {
                             $value = $ticket['customerEmail'];

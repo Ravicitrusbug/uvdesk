@@ -6,7 +6,7 @@
 	<div class="uv-kb-section-layout uv-kb-layout-grid">
     	{% for folder in solutions.results %}
 			<!--Folder-->
-			{% if user is not null or folder.visibility == 'public'%}
+			{% if user is not null and folder.visibility == 'public'%}
 				<div class="uv-kb-folder">
 					<p class="uv-folder-heading">{{folder.name}}</p>
 					<p class="uv-folder-description">{{folder.description}}</p>
