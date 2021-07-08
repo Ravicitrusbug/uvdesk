@@ -251,7 +251,7 @@
 			<a href="<%- path.replace('replaceId', id) %>" class="uv-btn-stroke edit-article">
 				{{ "Edit"|trans }}
 			</a>
-			<a class="uv-btn-stroke preview-article" href="<%- pathPreview.replace('replaceId', slug) %>" target="_blank" <%- status ? '' : 'disabled="disabled"' %>>
+			<a class="uv-btn-stroke preview-article" href="<%- pathPreview.replace('replaceId', slug) %>" <%- status ? '' : 'disabled="disabled"' %>>
 				{{ "Preview"|trans }}
 			</a>
 		</td>
