@@ -461,6 +461,19 @@ class UserService
         return array_column($qb->getQuery()->getArrayResult(), 'id');
     }
 
+    public function getUserOrganizationIds($userId)
+    {
+        $qb = $this->entityManager->createQueryBuilder();
+        $qb->select('supportTeams.id')->from('UVDeskCoreFrameworkBundle:User', 'user')
+            ->leftJoin('user.userInstance', 'userInstance')
+            ->leftJoin('userInstance.supportTeams', 'supportTeams')
+            ->andwhere('user.id = :userId')
+            ->andwhere('supportTeams.isActive = 1')
+            ->setParameter('userId', $userId);
+
+        return array_column($qb->getQuery()->getArrayResult(), 'id');
+    }
+
     public function getUserGroupIds($userId)
     {
         $qb = $this->entityManager->createQueryBuilder();

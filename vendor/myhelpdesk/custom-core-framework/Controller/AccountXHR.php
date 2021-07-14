@@ -32,9 +32,17 @@ class AccountXHR extends Controller
         if (!$this->userService->isAccessAuthorized('ROLE_AGENT_MANAGE_AGENT')) {
             return $this->redirect($this->generateUrl('helpdesk_member_dashboard'));
         }
+        $group = $request->query->get('group');
+        $organization = $request->query->get('organization');
+        $company = $request->query->get('company');
+        $request->query->remove('company');
+        $request->query->remove('organization');
+        $request->query->remove('group');
+
+        $request->query->get('company');
         if (true === $request->isXmlHttpRequest()) {
             $userRepository = $this->getDoctrine()->getRepository('UVDeskCoreFrameworkBundle:User');
-            $agentCollection = $userRepository->getAllAgents($request->query, $this->container);
+            $agentCollection = $userRepository->getAllAgents($request->query, $this->container, $group, $organization, $company);
             return new Response(json_encode($agentCollection), 200, ['Content-Type' => 'application/json']);
         }
         return new Response(json_encode([]), 404);

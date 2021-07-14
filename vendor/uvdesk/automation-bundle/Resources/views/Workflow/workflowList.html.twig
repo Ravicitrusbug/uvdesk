@@ -71,7 +71,7 @@
             	<span class="uv-text-danger">{{ 'Disabled'|trans }}</span>
         	<% } %>
 		</td>
-		<td data-value="{{ 'Action'|trans }}" class="uv-last" style="width:264px">
+		<td data-value="{{ 'Action'|trans }}" class="uv-last" style="width:25%">
 			<a href="<%= path.replace('replaceId', id) %>" class="uv-btn-stroke edit-workflow" data-value="<%= id %>">
 				{{ "Edit"|trans }}
 			</a>
@@ -81,6 +81,9 @@
 			<div class="uv-btn-stroke clone-workflow">
 				Clone
 			</div>
+			<a href="<%= path.replace('replaceId', id) %>?print=1" class="uv-btn-stroke edit-workflow" data-value="<%= id %>">
+				{{ "Print"|trans }}
+			</a>
 		</td>	
     </script>
 	<!-- //Workflow list item template -->

@@ -34,6 +34,9 @@
 			float: left;
 		}
 	}
+	.uv-aside-brick{
+		pointer-events:none
+	}
 	</style>
 
 	<div class="uv-inner-section uv-article">
@@ -171,10 +174,6 @@
 				</div>
 			</div>
 
-			<div class="uv-aside-brick">
-				<span class="uv-text-danger uv-cursor delete-article">{{ "Delete Article"|trans }}
-			</div>
-
         </div>
 
 		<div class="uv-view {% if app.request.cookies and app.request.cookies.get('uv-asideView') %}uv-aside-view{% endif %}">
@@ -198,7 +197,7 @@
 						<span class="uv-action-buttons">
 							<!--<a href="{{path('helpdesk_knowledgebase_read_slug_article', {'slug': article.slug })}}" target="_blank" type="button" class="uv-btn-action uv-margin-right-5 uv-button-preview" {{ article.status ? '' : 'disabled="disabled"'}} id="preview-link">
 								<span class="uv-icon-eye-light"></span> {{'View'|trans}}
-							</a>-->
+							</a>
 
 							<a href="#" type="button" class="uv-btn-action uv-margin-right-5" id="preview-article">
 								<span class="uv-icon-eye-light"></span> {{'Preview'|trans}}
@@ -206,7 +205,7 @@
 
 							<a href="#" type="button" class="uv-btn-action update-btn">
 								<span class="uv-icon-publish-light"></span> {{'Update'|trans}}
-							</a>
+							</a>-->
 						</span>
 					</div>
 				</div>

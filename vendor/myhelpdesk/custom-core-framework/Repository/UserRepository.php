@@ -19,7 +19,7 @@ class UserRepository extends \Doctrine\ORM\EntityRepository
     const LIMIT = 10;
     public $safeFields = ['page', 'limit', 'sort', 'order', 'direction'];
 
-    public function getAllAgents(ParameterBag $params = null, ContainerInterface $container)
+    public function getAllAgents(ParameterBag $params = null, ContainerInterface $container, $group = '', $organization = '', $company = '')
     {
         $params = !empty($params) ? array_reverse($params->all()) : [];
 
@@ -33,6 +33,18 @@ class UserRepository extends \Doctrine\ORM\EntityRepository
             ->leftJoin('userInstance.supportTeams', 'supportTeam')
             ->where('supportRole.id != :customerRole')->setParameter('customerRole', 4)
             ->orderBy('userInstance.createdAt', !isset($params['sort']) ? Criteria::DESC : Criteria::ASC);
+
+        if (isset($group)) {
+            $queryBuilder->andWhere("supportGroup.id = :groupId")->setParameter('groupId', $group);
+        }
+
+        if (isset($organization)) {
+            $queryBuilder->andWhere("supportTeam.id = :organizationId")->setParameter('organizationId', $organization);
+        }
+
+        if (isset($company)) {
+            $queryBuilder->andWhere("supportCompany.id = :companyId")->setParameter('companyId', $company);
+        }
 
         foreach ($params as $field => $fieldValue) {
             if (in_array($field, $this->safeFields))
@@ -101,13 +113,28 @@ class UserRepository extends \Doctrine\ORM\EntityRepository
         return $qb;
     }
 
-    public function getAllCustomer(ParameterBag $obj = null, $container)
+    public function getAllCustomer(ParameterBag $obj = null, $container, $group = '', $organization = '', $company = '')
     {
         $json = array();
         $qb = $this->getEntityManager()->createQueryBuilder();
-        $qb->select('a,userInstance')->from($this->getEntityName(), 'a');
+        $qb->select('a, userInstance,supportCompany, supportGroup, supportTeam')->from($this->getEntityName(), 'a');
         $qb->leftJoin('a.userInstance', 'userInstance');
+        $qb->leftJoin('userInstance.supportCompanies', 'supportCompany');
+        $qb->leftJoin('userInstance.supportGroups', 'supportGroup');
+        $qb->leftJoin('userInstance.supportTeams', 'supportTeam');
         $qb->addSelect("CONCAT(a.firstName,' ',a.lastName) AS name");
+
+        if (isset($group)) {
+            $qb->andWhere("supportGroup.id = :groupId")->setParameter('groupId', $group);
+        }
+
+        if (isset($organization)) {
+            $qb->andWhere("supportTeam.id = :organizationId")->setParameter('organizationId', $organization);
+        }
+
+        if (isset($company)) {
+            $qb->andWhere("supportCompany.id = :companyId")->setParameter('companyId', $company);
+        }
 
         $data = $obj->all();
         $data = array_reverse($data);
@@ -157,6 +184,7 @@ class UserRepository extends \Doctrine\ORM\EntityRepository
         $this->container = $container;
         $data = array();
 
+
         foreach ($results as $key => $customer) {
             $data[] = array(
                 'id' => $customer[0]['id'],
@@ -168,6 +196,9 @@ class UserRepository extends \Doctrine\ORM\EntityRepository
                 'name' => $customer[0]['firstName'] . ' ' . $customer[0]['lastName'],
                 'source' => $customer[0]['userInstance'][0]['source'],
                 'count' => $this->getCustomerTicketCount($customer[0]['id']),
+                'companies' => implode(' , ', array_column($customer[0]['userInstance'][0]['supportCompanies'], 'name')),
+                'groups' => implode(' , ', array_column($customer[0]['userInstance'][0]['supportGroups'], 'name')),
+                'teams' => implode(' , ', array_column($customer[0]['userInstance'][0]['supportTeams'], 'name')),
             );
         }
         $json['customers'] = $data;

@@ -42,7 +42,7 @@
 						</div>
 					</div>
 
-					<!--<a href="#agent-filters" rel="modal:open" type="button" class="uv-btn-action "><span class="uv-icon-add"></span> {{ 'Filters'|trans }}</a>-->
+					<a href="#agent-filters" rel="modal:open" type="button" class="uv-btn-action "><span class="uv-icon-add"></span> {{ 'Filters'|trans }}</a>
 				</div>
 
 				<div class="uv-action-bar-col-rt">
@@ -80,8 +80,39 @@
 	</div>
 
 	<div id="agent-filters" class="modal">
-		<h2>Status Change History</h2><br>
-        
+		<h2>Filter Agent List</h2><br>
+		<div class="uv-element-block uv-aside-select">
+			<label class="uv-aside-select-label">Organization</label>
+			<select id="select-organization" class="chosen-select" name="organization" data-placeholder="Choose a organization...">
+					<option value=""></option>
+					{% for organization in supportTeamCollection %}
+	
+					<option value="{{ organization.id }}">{{ organization.name }}</option>
+					{% endfor %}
+				</select>
+		</div>
+		<div class="uv-element-block uv-aside-select">
+			<label class="uv-aside-select-label">Group</label>
+			<select id="select-group" class="chosen-select" name="group" data-placeholder="Choose a group...">
+					<option value=""></option>
+					{% for group in supportGroupCollection %}
+	
+					<option value="{{ group.id }}">{{ group.name }}</option>
+					{% endfor %}
+				</select>
+		</div>
+		<div class="uv-element-block uv-aside-select">
+			<label class="uv-aside-select-label">Site</label>
+			<select id="select-company" class="chosen-select" name="company" data-placeholder="Choose a site...">
+					<option value=""></option>
+					{% for company in supportCompanyCollection %}
+	
+					<option value="{{ company.id }}">{{ company.name }}</option>
+					{% endfor %}
+				</select>
+		</div>
+		<a type="button" class="uv-btn-action submit-filters">{{ 'Submit'|trans }}</a>
+		<a type="button" class="uv-btn-action reset-filters">{{ 'Rest'|trans }}</a>
     </div>
 {% endblock %}
 
@@ -164,7 +195,9 @@
 				filterParameters : {
 					"isActive" : "",
 					"search" : "",
-					"test": ""
+					"group": "",
+					"organization": "",
+					"company":  ""
 				},
 				parseRecords: function (resp, options) {
 					return resp.users;
@@ -176,6 +209,9 @@
 						reset: true,
 						success: function(model, response) {
 							app.appView.hideLoader();
+							agentCollection.filterParameters.group = '';
+							agentCollection.filterParameters.organization = '';
+							agentCollection.filterParameters.company = '';
 							var agentListView = new AgentList();
 							app.pager.paginationData = response.pagination_data;
 
@@ -322,6 +358,34 @@
 
 			router = new Router();
 			Backbone.history.start({push_state:true});
+
+			$('.submit-filters').click(function(){
+				app.appView.showLoader();
+				agentCollection.filterParameters.group = $('#select-group').val();
+				agentCollection.filterParameters.organization = $('#select-organization').val()
+				agentCollection.filterParameters.company = $('#select-company').val()
+				agentCollection.syncData();
+				$('.close-modal').trigger('click');
+			})
+
+			$('#select-group').chosen({
+				no_results_text: "Oops, nothing found!",
+				width: "100%"
+			});
+
+			$('#select-organization').chosen({
+				no_results_text: "Oops, nothing found!",
+				width: "100%"
+			});
+
+			$('#select-company').chosen({
+				no_results_text: "Oops, nothing found!",
+				width: "100%"
+			});
+
+			$(".reset-filters").click(function(){
+				window.location.reload();
+			})
 		});
 	</script>
 {% endblock %}

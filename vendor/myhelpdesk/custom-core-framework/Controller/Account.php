@@ -31,8 +31,14 @@ class Account extends AbstractController
     private $uvdeskService;
     private $fileSystem;
 
-    public function __construct(UserService $userService, EventDispatcherInterface $eventDispatcher, TranslatorInterface $translator, UserPasswordEncoderInterface $passwordEncoder, UVDeskService $uvdeskService, FileSystem $fileSystem)
-    {
+    public function __construct(
+        UserService $userService,
+        EventDispatcherInterface $eventDispatcher,
+        TranslatorInterface $translator,
+        UserPasswordEncoderInterface $passwordEncoder,
+        UVDeskService $uvdeskService,
+        FileSystem $fileSystem
+    ) {
         $this->userService = $userService;
         $this->eventDispatcher = $eventDispatcher;
         $this->translator = $translator;
@@ -56,8 +62,14 @@ class Account extends AbstractController
         if (!$this->userService->isAccessAuthorized('ROLE_AGENT_MANAGE_AGENT')) {
             return $this->redirect($this->generateUrl('helpdesk_member_dashboard'));
         }
+        $entityManager = $this->getDoctrine()->getManager();
+        $userRepository = $entityManager->getRepository('UVDeskCoreFrameworkBundle:User');
 
-        return $this->render('@UVDeskCoreFramework/Agents/listSupportAgents.html.twig');
+        return $this->render('@UVDeskCoreFramework/Agents/listSupportAgents.html.twig', [
+            'supportGroupCollection' => $userRepository->getSupportGroups(),
+            'supportTeamCollection' => $userRepository->getSupportTeams(),
+            'supportCompanyCollection' => $entityManager->getRepository('UVDeskCoreFrameworkBundle:SupportCompany')->findAll(),
+        ]);
     }
 
     public function loadProfile(Request $request)
@@ -461,6 +473,18 @@ class Account extends AbstractController
                         }
                     }
                     // Map support group
+                    if (!empty($formDetails['companies'])) {
+                        $supportCompanyRepository = $entityManager->getRepository('UVDeskCoreFrameworkBundle:SupportCompany');
+
+                        foreach ($formDetails['companies'] as $supportCompanyId) {
+                            $supportCompany = $supportCompanyRepository->findOneById($supportCompanyId);
+
+                            if (!empty($supportCompany)) {
+                                $userInstance->addSupportCompany($supportCompany);
+                            }
+                        }
+                    }
+
                     if (!empty($formDetails['groups'])) {
                         $supportGroupRepository = $entityManager->getRepository('UVDeskCoreFrameworkBundle:SupportGroup');
 

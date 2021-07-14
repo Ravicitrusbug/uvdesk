@@ -178,6 +178,10 @@
             </div>
 		</div>
 	</div>
+
+	<div id="article-preview" class="modal">
+		<h2>Filter Agent List</h2><br>
+    </div>
 {% endblock %}
 
 {% block footer %}
@@ -251,7 +255,7 @@
 			<a href="<%- path.replace('replaceId', id) %>" class="uv-btn-stroke edit-article">
 				{{ "Edit"|trans }}
 			</a>
-			<a class="uv-btn-stroke preview-article" href="<%- pathPreview.replace('replaceId', slug) %>" <%- status ? '' : 'disabled="disabled"' %>>
+			<a class="uv-btn-stroke preview-article" href="<%- pathPreview.replace('replaceId', id) %>" <%- status ? '' : 'disabled="disabled"' %>>
 				{{ "Preview"|trans }}
 			</a>
 		</td>
@@ -260,7 +264,8 @@
 
 	<script type="text/javascript">
 		var path = "{{ path('helpdesk_member_knowledgebase_update_article', {'id': 'replaceId' }) }}";
-    	var pathPreview = "{{ path('helpdesk_knowledgebase_read_slug_article', {'slug': 'replaceId' }) }}";
+		var pathPreview = "{{ path('helpdesk_member_knowledgebase_preview_article', {'id': 'replaceId' }) }}";
+    	//var pathPreview = "{{ path('helpdesk_knowledgebase_read_slug_article', {'slug': 'replaceId' }) }}";
 
 		$(function () {
 			var globalMessageResponse = "";
