@@ -148,7 +148,7 @@ class TicketRepository extends \Doctrine\ORM\EntityRepository
         foreach ($data as $key => $value) {
             if (!in_array($key, $this->safeFields)) {
                 if (isset($data['search']) && $key == 'search') {
-                    $qb->andwhere("t.subject LIKE :subject OR a.email LIKE :agentName OR t.id LIKE :ticketId");
+                    $qb->andwhere("t.subject LIKE :subject OR CONCAT(a.firstName,' ', a.lastName) LIKE :agentName OR t.id LIKE :ticketId");
                     $qb->setParameter('subject', '%' . urldecode($value) . '%');
                     $qb->setParameter('agentName', '%' . urldecode($value) . '%');
                     $qb->setParameter('ticketId', '%' . urldecode($value) . '%');

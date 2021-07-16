@@ -175,6 +175,11 @@ class Article extends Controller
 
     public function article(Request $request)
     {
+        if (!$this->userService->isAccessAuthorized('ROLE_AGENT_MANAGE_EDIT_ARTICLE')) {
+            $this->addFlash('warning', 'You dont have any access to add/edit article, please contact your administrator');
+            return $this->redirect($this->generateUrl('helpdesk_member_dashboard'));
+        }
+
         if ($request->attributes->get('id')) {
             $article = $this->getArticle(['id' => $request->attributes->get('id')]);
 

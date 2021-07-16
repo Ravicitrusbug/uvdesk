@@ -157,10 +157,13 @@
 						required : true,
 						msg : '{{ "This field is mandatory"|trans }}'
 					},
-					'subject' : {
+					'subject' : [{
 						required : true,
 						msg : '{{ "This field is mandatory"|trans }}'
-					},
+					},{
+                        maxLength: 255,
+                        msg: '{{ "Subject should have characters less then 255"|trans }}'
+                    }],
 					'reply' : {
 						required : true,
 						msg : '{{ "This field is mandatory"|trans }}'

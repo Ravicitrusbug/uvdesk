@@ -64,6 +64,9 @@
                     },{
                         pattern: 'email',
                         msg: '{{ "This is not a valid email address"|trans }}'
+                    },{
+                        maxLength: 255,
+                        msg: '{{ "Email should have characters less then 255"|trans }}'
                     }],
                     '_password': [{
                         required: true,
