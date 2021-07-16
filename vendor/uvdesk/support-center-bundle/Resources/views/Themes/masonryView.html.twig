@@ -6,12 +6,14 @@
 	<div class="uv-kb-section-layout uv-kb-layout-grid">
     	{% for folder in solutions.results %}
 			<!--Folder-->
-			<div class="uv-kb-folder">
-				<p class="uv-folder-heading">{{folder.name}}</p>
-				<p class="uv-folder-description">{{folder.description}}</p>
-				<p><a href="{{ path('helpdesk_knowledgebase_folder', {'solution': folder.id}) }}">{{folder.categoriesCount}} {{"Categories"|trans}}</a></p>
-				<p><a href="{{ path('helpdesk_knowledgebase_folder_article_collection', {'solution': folder.id}) }}">{{folder.articleCount}} {{"Articles"|trans}}</a></p>
-			</div>
+			{% if user is not null and folder.visibility == 'public'%}
+				<div class="uv-kb-folder">
+					<p class="uv-folder-heading">{{folder.name}}</p>
+					<p class="uv-folder-description">{{folder.description}}</p>
+					<p><a href="{{ path('helpdesk_knowledgebase_folder', {'solution': folder.id}) }}">{{folder.categoriesCount}} {{"Categories"|trans}}</a></p>
+					<p><a href="{{ path('helpdesk_knowledgebase_folder_article_collection', {'solution': folder.id}) }}">{{folder.articleCount}} {{"Articles"|trans}}</a></p>
+				</div>
+			{% endif %}
 			<!--//Folder-->
     	{% endfor %}
 	</div>

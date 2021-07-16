@@ -24,7 +24,7 @@ uvdesk:
     support_email:
         id: helpdesk@rtmcloud.com.au
         name: RTM Cloud Helpdesk
-        mailer_id: RTM.Cloud.Helpdesk
+        mailer_id: RTMCloudHelpdesk
     
     # Default resources
     default:

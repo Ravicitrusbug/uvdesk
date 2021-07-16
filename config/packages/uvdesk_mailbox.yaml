@@ -7,19 +7,19 @@ uvdesk_mailbox:
     
     # Configure your mailboxes here
     mailboxes:
-        RTM.Mailbox:
-            name: RTM Cloud Helpdesk - Mailbox
+        RTMMailbox:
+            name: RTM Cloud Helpdesk Mailbox
             enabled: true
 
             # [SMTP] Outgoing mail server
             # Swiftmailer smtp mailer to use for sending emails through on behalf of this mailbox
             smtp_server: 
-                mailer_id: RTM.Cloud.Helpdesk
+                mailer_id: RTMCloudHelpdesk
 
             # [IMAP] Incoming mail server
             # IMAP configurations to use for fetching emails from mailbox
             imap_server:
-                host: 'outlook.office365.com'
+                host: '{outlook.office365.com:993/imap/ssl}INBOX'
                 username: helpdesk@rtmcloud.com.au
                 password: Hap84910
 

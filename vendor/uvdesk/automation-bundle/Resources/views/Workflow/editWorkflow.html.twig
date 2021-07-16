@@ -46,9 +46,49 @@
         .textarea-fix-action {
             max-width: 500px !important;
         }
+        .print-header,.divFooter{
+            display:none
+        }
+		@media print {
+			.uv-inner-section .uv-view {
+                padding: 0;
+                top: 0;
+                left: 0;
+                overflow-y: auto;
+                bottom: 0;
+                width: 100%;
+                position: relative;
+                z-index: 2;
+            }
+            .uv-paper .uv-wrapper {
+                position: relative;
+                margin-top: 0px;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                overflow-x: hidden;
+                overflow-y: auto;
+                transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            @page { size: auto;  margin: 5mm; }
+            
+            .print-header,.divFooter{
+                display:block
+            }
+            a.uv-btn-tag.btn-add,a.uv-btn-tag.btn-or,a.uv-btn-tag.btn-and,h1,.uv-btn,.uv-navbar,.uv-sidebar.uv-sidebar-active,.uv-aside  {
+                display: none;
+            }
+            div.divFooter {
+                position: fixed;
+                bottom: 0;
+            }
+		}
     </style>
     <!-- Inner Section -->
+    
     <div class="uv-inner-section">
+        <input type="hidden" name="enable-print" id="enable-print" value="{{ app.request.query.get('print') }}">
         {# Append Panel Aside #}
 		{% set asideTemplate = 'Webkul\\UVDesk\\CoreFrameworkBundle\\Dashboard\\AsideTemplate' %}
 		{% set asideSidebarReference = 'Webkul\\UVDesk\\CoreFrameworkBundle\\UIComponents\\Dashboard\\Panel\\Sidebars\\Productivity' %}
@@ -58,6 +98,9 @@
         <!-- View -->
         <div class="uv-view {% if app.request.cookies and app.request.cookies.get('uv-asideView') %}uv-aside-view{% endif %}">
             <!-- Form -->
+            <div class="print-header">
+                <img src="{{ asset('bundles/uvdeskcoreframework/images/custom/print-header.jpg') }}" style="height: 13%;width: 100%;">
+            </div>
             {% if app.request.get('id') is not empty %}
                 <h1>{{ 'Edit Workflow'|trans }}</h1>
                 <form class="workflow-form" name="form-workflow" method="POST" action="{{ path('workflows_editaction', {'id': app.request.get('id')}) }}">
@@ -155,6 +198,9 @@
                 <button type="submit" name="submit" class="uv-btn" href="#">{% if app.request.get('id') is not empty %}{{ 'Save Workflow'|trans }}{% else %}{{ 'Add Workflow'|trans }}{% endif %}</button>
                 <!-- // CTA -->
             </form>
+            <div class="divFooter" style="right:30px">
+                <img src="{{ asset('bundles/uvdeskcoreframework/images/custom/print-footer.jpg') }}" style="height: 13%;width: 100%;">
+            </div>
             <!-- Form -->
         </div>
         <!-- // View -->
@@ -324,6 +370,16 @@
             };
             return $.each(this.serializeArray(), b), a
         };
+    </script>
+    <script type="text/javascript">
+        $(window).bind("load", function() { 
+            setTimeout(function(){  
+                var enable = $('#enable-print').val();
+                if(enable == 1){
+                    window.print();
+                }
+            }, 2000);
+        });
     </script>
 
     {{ include('@UVDeskAutomation//Workflow//events.html.twig') }}

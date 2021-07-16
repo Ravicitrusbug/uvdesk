@@ -6,18 +6,20 @@
 	<div class="uv-kb-section-layout uv-kb-layout-folder">
     	{% for folder in solutions.results %}
 			<!--Folder-->
-			<div class="uv-kb-folder">
-				<div class="uv-kb-folder-lt">
-					{% if folder.solutionImage %}
-						<img src="{{ app.request.scheme ~'://' ~ app.request.httpHost ~ asset('') }}{{ folder.solutionImage }}">
-					{% endif %}
+			{% if user is not null and folder.visibility == 'public'%}
+				<div class="uv-kb-folder">
+					<div class="uv-kb-folder-lt">
+						{% if folder.solutionImage %}
+							<img src="{{ app.request.scheme ~'://' ~ app.request.httpHost ~ asset('') }}{{ folder.solutionImage }}">
+						{% endif %}
+					</div>
+					<div class="uv-kb-folder-rt">
+						<p><span>{{folder.name}}</span></p>
+						<p><a href="{{ path('helpdesk_knowledgebase_folder', {'solution': folder.id}) }}">{{folder.categoriesCount}} {{"Categories"|trans}}</a></p>
+						<p><a href="{{ path('helpdesk_knowledgebase_folder_article_collection', {'solution': folder.id}) }}">{{folder.articleCount}} {{"Articles"|trans}}</a></p>
+					</div>
 				</div>
-				<div class="uv-kb-folder-rt">
-					<p><span>{{folder.name}}</span></p>
-					<p><a href="{{ path('helpdesk_knowledgebase_folder', {'solution': folder.id}) }}">{{folder.categoriesCount}} {{"Categories"|trans}}</a></p>
-					<p><a href="{{ path('helpdesk_knowledgebase_folder_article_collection', {'solution': folder.id}) }}">{{folder.articleCount}} {{"Articles"|trans}}</a></p>
-				</div>
-			</div>
+			{% endif %}
 			<!--//Folder-->
     	{% endfor %}
 	</div>

@@ -85,6 +85,7 @@
 				<tr>
 					<th>{{ "Ticket Id"|trans }}</th>
 					<th>{{ "Subject"|trans }}</th>
+					<th>{{ "Type"|trans }}</th>
 					<th>{{ "Status"|trans }}</th>
 					<th>{{ "Timestamp"|trans }}</th>
 					<th class="uv-last">{{ "Agent"|trans }}</th>
@@ -132,6 +133,11 @@
         <td data-value="{{ 'Subject'|trans }}">
 	       <a class="not-shiny" href="<%- path %>">
 	    		<%- subject %>
+	    	</a>
+        </td>
+		<td data-value="{{ 'Subject'|trans }}">
+	       <a class="not-shiny" href="<%- path %>">
+	    		<%- type.description %>
 	    	</a>
         </td>
         <td data-value="{{ 'Status'|trans }}">

@@ -1,7 +1,7 @@
 swiftmailer:
-    default_mailer: RTM.Cloud.Helpdesk
+    default_mailer: RTMCloudHelpdesk
     mailers:
-        RTM.Cloud.Helpdesk:
+        RTMCloudHelpdesk:
             transport: smtp
             username: helpdesk@rtmcloud.com.au
             password: Hap84910
@@ -10,6 +10,6 @@ swiftmailer:
             encryption: tls
             auth_mode: login
             sender_address: helpdesk@rtmcloud.com.au
-            delivery_addresses: ['helpdesk@rtmcloud.com.au']
+            delivery_addresses: ['']
             disable_delivery: false
 

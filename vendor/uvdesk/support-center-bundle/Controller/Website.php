@@ -71,7 +71,7 @@ class Website extends Controller
         ];
 
         $newResult = [];
-       
+
         foreach ($twigResponse['solutions'] as $key => $result) {
             $newResult[] = [
                 'id' => $result->getId(),
@@ -86,17 +86,19 @@ class Website extends Controller
         }
 
         $twigResponse['solutions']['results'] = $newResult;
-        $twigResponse['solutions']['categories'] = array_map(function($category) use ($articleRepository) {
+        $user = $this->userService->getCurrentUser();
+        $twigResponse['user'] = $user === 'anon.' ? null : $user;
+        $twigResponse['solutions']['categories'] = array_map(function ($category) use ($articleRepository) {
             $parameterBag = [
                 'categoryId' => $category['id'],
                 'status' => 1,
                 'sort' => 'id',
-                'limit'=>10,
+                'limit' => 10,
                 'direction' => 'desc'
             ];
 
             $article =  $articleRepository->getAllArticles(new ParameterBag($parameterBag), $this->container, 'a.id, a.name, a.slug, a.stared');
-             
+
             return [
                 'id' => $category['id'],
                 'name' => $category['name'],
@@ -114,7 +116,7 @@ class Website extends Controller
 
         $solutionRepository = $this->getDoctrine()->getRepository('UVDeskSupportCenterBundle:Solutions');
         $categoryCollection = $solutionRepository->getAllCategories(10, 4);
-        
+
         return $this->render('@UVDeskSupportCenter/Knowledgebase/categoryListing.html.twig', [
             'categories' => $categoryCollection,
             'categoryCount' => count($categoryCollection),
@@ -124,17 +126,17 @@ class Website extends Controller
     public function viewFolder(Request $request)
     {
         $this->isKnowledgebaseActive();
-        
-        if(!$request->attributes->get('solution'))
+
+        if (!$request->attributes->get('solution'))
             return $this->redirect($this->generateUrl('helpdesk_knowledgebase'));
 
         $filterArray = ['id' => $request->attributes->get('solution')];
 
         $solution = $this->getDoctrine()
-                    ->getRepository('UVDeskSupportCenterBundle:Solutions')
-                    ->findOneBy($filterArray);
+            ->getRepository('UVDeskSupportCenterBundle:Solutions')
+            ->findOneBy($filterArray);
 
-        if(!$solution)
+        if (!$solution)
             $this->noResultFound();
 
         $breadcrumbs = [
@@ -173,16 +175,16 @@ class Website extends Controller
     {
         $this->isKnowledgebaseActive();
 
-        if(!$request->attributes->get('solution'))
+        if (!$request->attributes->get('solution'))
             return $this->redirect($this->generateUrl('helpdesk_knowledgebase'));
 
         $filterArray = ['id' => $request->attributes->get('solution')];
 
         $solution = $this->getDoctrine()
-                    ->getRepository('UVDeskSupportCenterBundle:Solutions')
-                    ->findOneBy($filterArray);
+            ->getRepository('UVDeskSupportCenterBundle:Solutions')
+            ->findOneBy($filterArray);
 
-        if(!$solution)
+        if (!$solution)
             $this->noResultFound();
 
         $breadcrumbs = [
@@ -220,26 +222,26 @@ class Website extends Controller
     {
         $this->isKnowledgebaseActive();
 
-        if(!$request->attributes->get('category'))
+        if (!$request->attributes->get('category'))
             return $this->redirect($this->generateUrl('helpdesk_knowledgebase'));
 
         $filterArray = array(
-                            'id' => $request->attributes->get('category'),
-                            'status' => 1,
-                        );
-       
+            'id' => $request->attributes->get('category'),
+            'status' => 1,
+        );
+
         $category = $this->getDoctrine()
-                    ->getRepository('UVDeskSupportCenterBundle:SolutionCategory')
-                    ->findOneBy($filterArray);
-    
-        if(!$category)
+            ->getRepository('UVDeskSupportCenterBundle:SolutionCategory')
+            ->findOneBy($filterArray);
+
+        if (!$category)
             $this->noResultFound();
 
         $breadcrumbs = [
-            [ 'label' => $this->translator->trans('Support Center'),'url' => $this->generateUrl('helpdesk_knowledgebase') ],
-            [ 'label' => $category->getName(),'url' => '#' ],
+            ['label' => $this->translator->trans('Support Center'), 'url' => $this->generateUrl('helpdesk_knowledgebase')],
+            ['label' => $category->getName(), 'url' => '#'],
         ];
-        
+
         $parameterBag = [
             'categoryId' => $category->getId(),
             'status' => 1,
@@ -247,24 +249,24 @@ class Website extends Controller
             'direction' => 'desc'
         ];
 
-        $category_data=  array(
+        $category_data =  array(
             'category' => $category,
             'articlesCount' => $this->getDoctrine()
-                            ->getRepository('UVDeskSupportCenterBundle:SolutionCategory')
-                            ->getArticlesCountByCategory($category->getId(), [1]),
+                ->getRepository('UVDeskSupportCenterBundle:SolutionCategory')
+                ->getArticlesCountByCategory($category->getId(), [1]),
             'articles' => $this->getDoctrine()
-                        ->getRepository('UVDeskSupportCenterBundle:Article')
-                        ->getAllArticles(new ParameterBag($parameterBag), $this->container, 'a.id, a.name, a.slug, a.stared'),
+                ->getRepository('UVDeskSupportCenterBundle:Article')
+                ->getAllArticles(new ParameterBag($parameterBag), $this->container, 'a.id, a.name, a.slug, a.stared'),
             'breadcrumbs' => $breadcrumbs
         );
 
-        return $this->render('@UVDeskSupportCenter/Knowledgebase/category.html.twig',$category_data);
+        return $this->render('@UVDeskSupportCenter/Knowledgebase/category.html.twig', $category_data);
     }
-   
+
     public function viewArticle(Request $request)
     {
         $this->isKnowledgebaseActive();
-       
+
         if (!$request->attributes->get('article') && !$request->attributes->get('slug')) {
             return $this->redirect($this->generateUrl('helpdesk_knowledgebase'));
         }
@@ -276,25 +278,25 @@ class Website extends Controller
         if ($request->attributes->get('article')) {
             $article = $articleRepository->findOneBy(['status' => 1, 'id' => $request->attributes->get('article')]);
         } else {
-            $article = $articleRepository->findOneBy(['status' => 1,'slug' => $request->attributes->get('slug')]);
+            $article = $articleRepository->findOneBy(['status' => 1, 'slug' => $request->attributes->get('slug')]);
         }
-       
+
         if (empty($article)) {
             $this->noResultFound();
         }
         $article->setViewed((int) $article->getViewed() + 1);
-        
+
         // Log article view
         $articleViewLog = new ArticleViewLog();
         $articleViewLog->setUser(($user != null && $user != 'anon.') ? $user : null);
-        
+
         $articleViewLog->setArticle($article);
         $articleViewLog->setViewedAt(new \DateTime('now'));
 
         $entityManager->persist($article);
         $entityManager->persist($articleViewLog);
         $entityManager->flush();
-        
+
         // Get article feedbacks
         $feedbacks = ['enabled' => false, 'submitted' => false, 'article' => $articleRepository->getArticleFeedbacks($article)];
 
@@ -320,7 +322,7 @@ class Website extends Controller
             'popArticles'  => $articleRepository->getPopularTranslatedArticles($request->getLocale())
         ];
 
-        return $this->render('@UVDeskSupportCenter/Knowledgebase/article.html.twig',$article_details);
+        return $this->render('@UVDeskSupportCenter/Knowledgebase/article.html.twig', $article_details);
     }
 
     public function searchKnowledgebase(Request $request)
@@ -367,7 +369,7 @@ class Website extends Controller
         $this->isKnowledgebaseActive();
 
         // @TODO: Refactor
-            
+
         // if ($request->getMethod() != 'POST') {
         //     return $this->redirect($this->generateUrl('helpdesk_knowledgebase'));
         // }
