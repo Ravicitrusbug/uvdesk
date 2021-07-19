@@ -833,10 +833,10 @@ class UserService
     public function getLocalizedFormattedTime($user = null, \DateTime $timestamp, $format = 'm-d-y h:i A')
     {
         if (!empty($user) && $user != 'anon.' && $user->getTimezone() != null) {
+			
             $timestamp = clone $timestamp;
             $timestamp->setTimeZone(new \DateTimeZone($user->getTimezone()));
         }
-
         return $timestamp->format($format);
     }
 

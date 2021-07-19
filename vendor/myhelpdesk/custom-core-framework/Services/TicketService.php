@@ -447,6 +447,7 @@ class TicketService
         $params = $request->query->all();
         $activeUser = $this->container->get('user.service')->getSessionUser();
         $agentTimeZone = $activeUser->getTimezone();
+		
         $agentTimeFormat = $activeUser->getTimeformat();
 
         $ticketRepository = $this->entityManager->getRepository('UVDeskCoreFrameworkBundle:Ticket');
@@ -657,7 +658,6 @@ class TicketService
 
                     if (!empty($result)) {
                         $filterAdditionalTicket = array_column($result, 'id');
-                        // dd($filterAdditionalTicket);
                         $query .= ' OR supportTeam.id IN(' . $supportTeamIds . ') OR ticket.id IN(' . implode(',', $filterAdditionalTicket) . ')';
                     } else {
                         $query .= ' OR supportTeam.id IN(' . $supportTeamIds . ') ';
