@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "883b8cc9f5069438bc43397e1cf18804",
+    "content-hash": "af4d727433de79d308c7b2852f39615e",
     "packages": [
         {
             "name": "composer/package-versions-deprecated",
@@ -2597,6 +2597,52 @@
             "time": "2021-02-15T16:11:48+00:00"
         },
         {
+            "name": "myhelpdesk/custom-automation-bundle",
+            "version": "dev-main",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Ravicitrusbug/uvdesk-custom-automation-bundle.git",
+                "reference": "13887e0cbb11e60e5647d443d7dd197d3ed182a2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Ravicitrusbug/uvdesk-custom-automation-bundle/zipball/13887e0cbb11e60e5647d443d7dd197d3ed182a2",
+                "reference": "13887e0cbb11e60e5647d443d7dd197d3ed182a2",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.2",
+                "uvdesk/composer-plugin": "^1.0",
+                "uvdesk/core-framework": "^1.0.4"
+            },
+            "default-branch": true,
+            "type": "symfony-bundle",
+            "extra": {
+                "uvdesk-package-extension": "Webkul\\UVDesk\\AutomationBundle\\Package\\Composer"
+            },
+            "autoload": {
+                "psr-4": {
+                    "Webkul\\UVDesk\\AutomationBundle\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ravi Prajapati",
+                    "email": "ravi.citrusbug@gmail.com"
+                }
+            ],
+            "description": "UVDesk Community Helpdesk Automations Bundle",
+            "support": {
+                "issues": "https://github.com/Ravicitrusbug/uvdesk-custom-automation-bundle/issues",
+                "source": "https://github.com/Ravicitrusbug/uvdesk-custom-automation-bundle/tree/main"
+            },
+            "time": "2021-07-19T06:01:06+00:00"
+        },
+        {
             "name": "myhelpdesk/custom-core-framework",
             "version": "dev-main",
             "source": {
@@ -2652,6 +2698,52 @@
                 "source": "https://github.com/Ravicitrusbug/uvdesk-custom-core-framework/tree/main"
             },
             "time": "2021-05-23T14:16:13+00:00"
+        },
+        {
+            "name": "myhelpdesk/custom-support-center-bundle",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Ravicitrusbug/uvdesk-custom-supprt-center-bundle.git",
+                "reference": "a6ac635e30952945af0dda00819f5498a1274bc4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Ravicitrusbug/uvdesk-custom-supprt-center-bundle/zipball/a6ac635e30952945af0dda00819f5498a1274bc4",
+                "reference": "a6ac635e30952945af0dda00819f5498a1274bc4",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.2",
+                "uvdesk/composer-plugin": "^1.0",
+                "uvdesk/core-framework": "^1.0.4"
+            },
+            "default-branch": true,
+            "type": "symfony-bundle",
+            "extra": {
+                "uvdesk-package-extension": "Webkul\\UVDesk\\SupportCenterBundle\\Package\\Composer"
+            },
+            "autoload": {
+                "psr-4": {
+                    "Webkul\\UVDesk\\SupportCenterBundle\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ravi Prajapati",
+                    "email": "ravi.citrusbug@gmail.com"
+                }
+            ],
+            "description": "UVDesk Community Helpdesk Customer Support Center Bundle",
+            "support": {
+                "issues": "https://github.com/Ravicitrusbug/uvdesk-custom-supprt-center-bundle/issues",
+                "source": "https://github.com/Ravicitrusbug/uvdesk-custom-supprt-center-bundle/tree/master"
+            },
+            "time": "2021-07-19T05:42:46+00:00"
         },
         {
             "name": "ocramius/proxy-manager",
@@ -9235,7 +9327,9 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "myhelpdesk/custom-core-framework": 20
+        "myhelpdesk/custom-automation-bundle": 20,
+        "myhelpdesk/custom-core-framework": 20,
+        "myhelpdesk/custom-support-center-bundle": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,
@@ -9245,5 +9339,5 @@
         "ext-iconv": "*"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.0.0"
+    "plugin-api-version": "2.1.0"
 }

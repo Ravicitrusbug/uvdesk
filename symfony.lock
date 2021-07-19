@@ -144,8 +144,14 @@
     "myclabs/php-enum": {
         "version": "1.8.0"
     },
+    "myhelpdesk/custom-automation-bundle": {
+        "version": "dev-main"
+    },
     "myhelpdesk/custom-core-framework": {
         "version": "1.0.x-dev"
+    },
+    "myhelpdesk/custom-support-center-bundle": {
+        "version": "dev-master"
     },
     "nikic/php-parser": {
         "version": "v4.10.5"
