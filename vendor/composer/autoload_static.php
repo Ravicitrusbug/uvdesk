@@ -288,8 +288,8 @@ class ComposerStaticInit2611bee69579620687dc441e310aabf0
         ),
         'Webkul\\UVDesk\\AutomationBundle\\' => 
         array (
-            0 => __DIR__ . '/..' . '/uvdesk/automation-bundle',
-            1 => __DIR__ . '/..' . '/myhelpdesk/custom-automation-bundle',
+            0 => __DIR__ . '/..' . '/myhelpdesk/custom-automation-bundle',
+            1 => __DIR__ . '/..' . '/uvdesk/automation-bundle',
         ),
         'Twig\\' => 
         array (

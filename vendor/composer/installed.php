@@ -5,7 +5,7 @@
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '54c32ec274b9fce17834796cc05b7105cae35ef3',
+        'reference' => '29bbee273562da525110a55eae4006dfec4b89f9',
         'name' => '__root__',
         'dev' => true,
     ),
@@ -16,7 +16,7 @@
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '54c32ec274b9fce17834796cc05b7105cae35ef3',
+            'reference' => '29bbee273562da525110a55eae4006dfec4b89f9',
             'dev_requirement' => false,
         ),
         'composer/package-versions-deprecated' => array(
@@ -336,7 +336,7 @@
             'aliases' => array(
                 0 => '9999999-dev',
             ),
-            'reference' => '13887e0cbb11e60e5647d443d7dd197d3ed182a2',
+            'reference' => '7f0f73f217c6b56c48fd2e85df3e3cd04a79ca11',
             'dev_requirement' => false,
         ),
         'myhelpdesk/custom-core-framework' => array(

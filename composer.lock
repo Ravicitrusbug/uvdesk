@@ -2602,12 +2602,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Ravicitrusbug/uvdesk-custom-automation-bundle.git",
-                "reference": "13887e0cbb11e60e5647d443d7dd197d3ed182a2"
+                "reference": "7f0f73f217c6b56c48fd2e85df3e3cd04a79ca11"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Ravicitrusbug/uvdesk-custom-automation-bundle/zipball/13887e0cbb11e60e5647d443d7dd197d3ed182a2",
-                "reference": "13887e0cbb11e60e5647d443d7dd197d3ed182a2",
+                "url": "https://api.github.com/repos/Ravicitrusbug/uvdesk-custom-automation-bundle/zipball/7f0f73f217c6b56c48fd2e85df3e3cd04a79ca11",
+                "reference": "7f0f73f217c6b56c48fd2e85df3e3cd04a79ca11",
                 "shasum": ""
             },
             "require": {
@@ -2640,7 +2640,7 @@
                 "issues": "https://github.com/Ravicitrusbug/uvdesk-custom-automation-bundle/issues",
                 "source": "https://github.com/Ravicitrusbug/uvdesk-custom-automation-bundle/tree/main"
             },
-            "time": "2021-07-19T06:01:06+00:00"
+            "time": "2021-07-19T06:55:53+00:00"
         },
         {
             "name": "myhelpdesk/custom-core-framework",

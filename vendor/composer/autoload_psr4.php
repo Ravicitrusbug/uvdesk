@@ -16,7 +16,7 @@ return array(
     'Webkul\\UVDesk\\MailboxBundle\\' => array($vendorDir . '/uvdesk/mailbox-component'),
     'Webkul\\UVDesk\\ExtensionFrameworkBundle\\' => array($vendorDir . '/uvdesk/extension-framework'),
     'Webkul\\UVDesk\\CoreFrameworkBundle\\' => array($vendorDir . '/myhelpdesk/custom-core-framework', $vendorDir . '/uvdesk/core-framework'),
-    'Webkul\\UVDesk\\AutomationBundle\\' => array($vendorDir . '/uvdesk/automation-bundle', $vendorDir . '/myhelpdesk/custom-automation-bundle'),
+    'Webkul\\UVDesk\\AutomationBundle\\' => array($vendorDir . '/myhelpdesk/custom-automation-bundle', $vendorDir . '/uvdesk/automation-bundle'),
     'Twig\\' => array($vendorDir . '/twig/twig/src'),
     'Symfony\\Polyfill\\Php73\\' => array($vendorDir . '/symfony/polyfill-php73'),
     'Symfony\\Polyfill\\Php72\\' => array($vendorDir . '/symfony/polyfill-php72'),
