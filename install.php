@@ -169,6 +169,10 @@ if($version < '7.3'){
 if(in_array('dom',$extention_loaded) && in_array('mbstring',$extention_loaded) && in_array('imap',$extention_loaded) && in_array('mailparse',$extention_loaded) && $version > '7.3'){
 	$all_loaded = '1';
 }
+$myfile = '.env';
+if (!is_writable($myfile)) {
+    echo '<p style="color:red">your .env file is not writable please make it available for read and write by going in root directory</p>';
+}
 if(isset($_POST['form_submit'])){
 	$loading = '1';
 	$host = $_POST['host'];
@@ -260,8 +264,7 @@ if(isset($_POST['form_submit'])){
 				<input type="text" class="form-control" name="database" required="true" id="database" placeholder="Enter database">
 			  </div>
 			<?php if($all_loaded == '1'){ ?>
-			  <button type="submit" class="btn btn-primary" name="form_submit" <?php echo $loading === '1' ? 'disabled': ''?>>Submit</button>
-			  <p><?php echo $loading === '1' ? 'Installation is in progress, please wait till its done !!': ''?></p>
+			  <button type="submit" class="btn btn-primary" name="form_submit">Submit</button>
 			<?php } ?>
 			</form>
 		  </div>
